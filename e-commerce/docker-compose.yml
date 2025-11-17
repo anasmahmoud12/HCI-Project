@@ -1,0 +1,22 @@
+services:
+  postgres:
+#    name of image on docker
+    image: postgres:15
+#    mame of container
+    container_name: pgdb
+#?????
+    restart: always
+    environment:
+#      user name
+      POSTGRES_USER: anas
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: ecommerce
+#      any port of that
+    ports:
+      - "5432:5432"
+#      ????
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+#????????
+volumes:
+  pgdata:
