@@ -26,7 +26,7 @@ public class CategoryEntity {
     private LocalDateTime created_At;
     private LocalDateTime update_At;
 //mappedBy mean in table products and forien key without it he will make another table
-    // ( CascadeType.ALL) if we deleted a category , all products in will be deleted . (we can use isactive Attr insteed)
+    // ( CascadeType.ALL) if we deleted a category , all products in will be deleted . (we can use isactive Attr instead)
     @OneToMany(mappedBy = "category",cascade = CascadeType.ALL)
     private List<ProductEntity> products;
 
