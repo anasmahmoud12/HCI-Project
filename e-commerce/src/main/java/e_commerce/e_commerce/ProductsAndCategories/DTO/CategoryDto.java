@@ -15,6 +15,8 @@ public class CategoryDto {
     private  Long id;
     private String name;
     private  String description;
+    private Boolean isactive ;
+
     private LocalDateTime created_At;
     private LocalDateTime Update_At;
     private List<ProductDto> products;

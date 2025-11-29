@@ -20,7 +20,7 @@ public class CategoryService  {
     @Autowired
    private CategoryMapper categoryMapper;
 
- public     CategoryDto addCategory(CategoryDto catagory){
+ public CategoryDto addCategory(CategoryDto catagory){
  CategoryEntity categoryEntity=categoryMapper.convertToEntity(catagory);
 categoryEntity=catagoryRepository.save(categoryEntity);
 catagory.setId(categoryEntity.getId());

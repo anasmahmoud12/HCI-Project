@@ -13,31 +13,39 @@ public class ProductMapper {
     CategoryRepository categoryRepository;
     public ProductEntity convertToEntity(ProductDto dto) {
 
-        CategoryEntity categoryEntity =categoryRepository.findById(dto.getId()).orElse(null);
-
+//        CategoryEntity categoryEntity =categoryRepository.findById(dto.getId()).orElse(null);
+        CategoryEntity categoryEntity = null;
+        if (dto.getCategoryId() != null) {
+            categoryEntity = categoryRepository.findById(dto.getCategoryId()).orElse(null);
+        }
         return  ProductEntity.builder()
                 .id(dto.getId())
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .price(dto.getPrice())
-                .img(dto.getImg())
-                .quantity(dto.getQuantity())
+                .created_At(dto.getCreated_At())
                 .updated_At(dto.getUpdated_At())
-                .category(categoryEntity )
+                .priceBefore(dto.getPriceBefore())
+                .priceAfter(dto.getPriceAfter())
+                .stock_quantity(dto.getStock_quantity())
+                .category(categoryEntity)
                 .build();
 
     }
     public ProductDto convertToDto(ProductEntity entity) {
-
+        Long categoryId = null;
+        if (entity.getCategory() != null) {
+            categoryId = entity.getCategory().getId();
+        }
         return  ProductDto.builder()
                 .id(entity.getId())
                 .name(entity.getName())
                 .description(entity.getDescription())
-                .price(entity.getPrice())
-                .img(entity.getImg())
-                .quantity(entity.getQuantity())
+                .created_At(entity.getCreated_At())
                 .updated_At(entity.getUpdated_At())
-                .categoryId( entity.getId() )
+                .priceBefore(entity.getPriceBefore())
+                .priceAfter(entity.getPriceAfter())
+                .stock_quantity(entity.getStock_quantity())
+                .categoryId(categoryId)
                 .build();
 
     }

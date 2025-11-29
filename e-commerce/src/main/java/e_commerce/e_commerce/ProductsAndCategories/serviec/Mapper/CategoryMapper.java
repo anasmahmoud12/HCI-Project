@@ -15,6 +15,7 @@ public class CategoryMapper {
                 .id(dto.getId())
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .isactive(dto.getIsactive())
                 .created_At(dto.getCreated_At())
                 .update_At(dto.getUpdate_At())
                 .build();
@@ -26,6 +27,7 @@ public class CategoryMapper {
                 .id(entity.getId())
                 .name(entity.getName())
                 .description(entity.getDescription())
+                .isactive(entity.getIsactive())
                 .created_At(entity.getCreated_At())
                 .Update_At(entity.getUpdate_At())
                 .build();

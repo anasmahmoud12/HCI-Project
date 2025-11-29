@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -25,14 +26,18 @@ public class ProductEntity {
 
     private LocalDateTime created_At;
     private LocalDateTime updated_At;
-
-    private double price ;
-    private  int quantity;
-    @Lob
-private byte[]img;
+    private double priceBefore ;
+    private double priceAfter ;
+//    private double price ;
+    private int stock_quantity;
+//    @Lob
+//private byte[]img;
     @ManyToOne
     @JoinColumn(name="catagory_id")
     private CategoryEntity category;
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
+    private List<Product_imagesEntity> productImages;
+
 
 
 
