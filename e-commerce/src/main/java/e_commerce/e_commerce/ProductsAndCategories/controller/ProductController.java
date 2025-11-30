@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -60,4 +61,27 @@ public class ProductController {
         List<ProductDto> products = productService.getProductsByCategory(categoryId);
         return ResponseEntity.ok(products);
     }
+    //new endpoint for the product creation form
+    @PostMapping(value = "/with-images", consumes = "multipart/form-data")
+    public ResponseEntity<ProductDto> createProductWithImages(
+            @RequestParam("name") String name,
+            @RequestParam("description") String description,
+            @RequestParam("priceBefore") Double priceBefore,
+            @RequestParam("priceAfter") Double priceAfter,
+            @RequestParam("stock_quantity") Integer stockQuantity,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestParam(value = "primaryImageIndex", defaultValue = "0") Integer primaryImageIndex,
+            @RequestParam("images") MultipartFile[] images) {
+
+        try {
+            ProductDto createdProduct = productService.addProductWithImages(
+                    name, description, priceBefore, priceAfter, stockQuantity,
+                    categoryId, primaryImageIndex, images
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
 }

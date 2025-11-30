@@ -1,0 +1,119 @@
+<div class="container">
+  <h2>Add Product</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    
+    <!-- Basic Information -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input 
+          type="text" 
+          formControlName="name"
+          class="input"
+          placeholder="Enter product name">
+      </div>
+
+      <div class="form-group">
+        <label>Category *</label>
+        <select 
+          formControlName="categoryId"
+          class="input">
+          <option value="">Select a category</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea 
+        formControlName="description"
+        rows="3"
+        class="input"
+        placeholder="Enter product description"></textarea>
+    </div>
+
+    <!-- Pricing -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Original Price *</label>
+        <input 
+          type="number" 
+          formControlName="priceBefore"
+          step="0.01"
+          class="input"
+          placeholder="0.00">
+      </div>
+
+      <div class="form-group">
+        <label>Sale Price *</label>
+        <input 
+          type="number" 
+          formControlName="priceAfter"
+          step="0.01"
+          class="input"
+          placeholder="0.00">
+      </div>
+
+      <div class="form-group">
+        <label>Stock Quantity *</label>
+        <input 
+          type="number" 
+          formControlName="stock_quantity"
+          class="input"
+          placeholder="0">
+      </div>
+    </div>
+
+    <!-- Image Upload -->
+    <div class="form-group">
+      <label>Product Images</label>
+      
+      <input 
+        type="file" 
+        multiple
+        accept="image/*"
+        (change)="onFileSelected($event)"
+        class="input">
+      
+      <!-- Image Previews -->
+      <div *ngIf="selectedFiles.length > 0" class="image-previews">
+        <h4>Selected Images ({{ selectedFiles.length }})</h4>
+        <div class="image-grid">
+          <div *ngFor="let preview of imagePreviews; let i = index" class="image-card">
+            <img [src]="preview" class="image-preview">
+            <div class="image-name">{{ selectedFiles[i].name }}</div>
+            <div class="image-actions">
+              <button type="button" 
+                      (click)="removeImage(i)"
+                      class="btn-remove">
+                Remove
+              </button>
+              <button type="button" 
+                      (click)="setPrimaryImage(i)"
+                      [class.btn-primary-active]="i === primaryImageIndex"
+                      [class.btn-primary]="i !== primaryImageIndex"
+                      class="btn-set-primary">
+                {{ i === primaryImageIndex ? 'Primary' : 'Set Primary' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button 
+      type="submit"
+      [disabled]="isLoading || form.invalid"
+      class="btn-submit">
+      <span *ngIf="!isLoading">Save Product</span>
+      <span *ngIf="isLoading">Saving...</span>
+    </button>
+
+  </form>
+</div>

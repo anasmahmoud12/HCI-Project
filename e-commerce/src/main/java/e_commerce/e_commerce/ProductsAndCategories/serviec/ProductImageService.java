@@ -9,6 +9,7 @@ import e_commerce.e_commerce.ProductsAndCategories.services.Mapper.ProductImageM
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,5 +137,27 @@ public class ProductImageService {
         }
 
         return dtos;
+    }
+    public productImageDto addImageToProduct(Long productId, MultipartFile file, boolean isPrimary, Long displayOrder) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        try {
+            byte[] imageBytes = file.getBytes();
+            productImageDto imageDto = productImageDto.builder()
+                    .img(imageBytes)
+                    .is_primary(isPrimary)
+                    .display_order(displayOrder)
+                    .productid(productId)
+                    .build();
+
+            Product_imagesEntity imageEntity = productImageMapper.convertToEntity(imageDto);
+            imageEntity.setProduct(product);
+            Product_imagesEntity savedImage = productImagesRepository.save(imageEntity);
+
+            return productImageMapper.convertToDto(savedImage);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process image: " + e.getMessage());
+        }
     }
 }

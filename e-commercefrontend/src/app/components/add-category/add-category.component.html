@@ -1,0 +1,45 @@
+<div class="container">
+  <h2>Add Category</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    
+    <!-- Name Field -->
+    <div class="form-group">
+      <label>Name</label>
+      <input 
+        type="text" 
+        formControlName="name"
+        class="input"
+        placeholder="Enter category name">
+    </div>
+
+    <!-- Description Field -->
+    <div class="form-group">
+      <label>Description</label>
+      <input 
+        type="text" 
+        formControlName="description"
+        class="input"
+        placeholder="Enter category description">
+    </div>
+
+    <!-- Active Checkbox -->
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input 
+          type="checkbox" 
+          formControlName="isactive"
+          class="checkbox">
+        <span>Active</span>
+      </label>
+    </div>
+
+    <!-- Save Button -->
+    <button 
+      type="submit"
+      class="btn-submit">
+      Save Category
+    </button>
+
+  </form>
+</div>
