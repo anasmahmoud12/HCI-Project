@@ -1,0 +1,15 @@
+
+  <!-- <h1 class="trending-title">Trending Categories</h1> -->
+  
+  <div class="categories-grid">
+    <div class="category-card" *ngFor="let category of catagories">
+      <div class="card-image">
+       <img 
+    [src]="'data:image/jpeg;base64,' + category.img" 
+    [alt]="category.name" 
+    loading="lazy">
+      </div>
+      <h3 class="card-title">{{ category.description }}</h3>
+       <!-- <h3>name</h3> -->
+    </div>
+  </div>

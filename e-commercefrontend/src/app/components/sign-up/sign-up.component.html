@@ -1,0 +1,52 @@
+
+<body>
+    
+    <div class="form-container">
+        <h2>Signup</h2>
+
+        
+            <div class="field">
+                <label>First name</label>
+                <input [(ngModel)]="firstName"  type="text" placeholder="Enter first name">
+            </div>
+
+            <div class="field">
+                <label>Last name</label>
+                <input  [(ngModel)]="lastName"   type="text" placeholder="Enter last name">
+            </div>
+        
+
+        <div class="field">
+            <label>Email</label>
+            <input [(ngModel)]="email"  type="email" placeholder="Enter email">
+        </div>
+
+        <div class="field">
+            <label>Create password</label>
+            <input [(ngModel)]="password"    type="password" placeholder="Create password">
+        </div>
+
+        <div class="field">
+            <label>Confirm password</label>
+            <input   [(ngModel)]="confirmPassword"   type="password" placeholder="Confirm password">
+        </div>
+
+        <button (click)="sighUp()"  class="primary-btn">Signup</button>
+
+        <p class="switch-text">
+            Already have an account? <a href="#">Login</a>
+        </p>
+
+        <div class="divider">
+            <span>Or</span>
+        </div>
+
+      
+        <button class="social google">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg">
+            Login with Google
+        </button>
+    </div>
+
+</body>
+

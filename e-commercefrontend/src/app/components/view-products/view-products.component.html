@@ -1,0 +1,40 @@
+<div class="products-grid">
+  <div class="product-card" *ngFor="let product of products">
+    <div class="product-image">
+     <img 
+    [src]="'data:image/jpeg;base64,' + product.productImages[0].img" 
+    [alt]="product.name" 
+    loading="lazy">
+      <!-- <div class="product-badges"> -->
+        <!-- <span class="badge badge-new" *ngIf="product.isNew">NEW</span> -->
+        <!-- <span class="badge badge-discount" >-{{ product.priceAfter }}%</span> -->
+      <!-- </div> -->
+    </div>
+
+    <div class="product-info">
+      <!-- <div class="product-rating">
+        <span class="star" *ngFor="let star of [1,2,3,4,5]" 
+              [class.filled]="star <= product.rating">
+          ★
+        </span>
+      </div> -->
+
+      <h3 class="product-name">{{ product.name }}</h3>
+
+      <div class="product-pricing">
+        <span class="current-price">${{ product.priceAfter }}</span>
+        <span class="old-price" *ngIf="product.priceBefore-product.priceAfter!=0">${{ product.priceBefore }}</span>
+      </div>
+
+      <div class="product-actions">
+        <button class="action-btn add-to-cart" (click)="addToCart(product)">
+          🛒
+        </button>
+        <!-- <button class="action-btn add-to-wishlist" 
+                (click)="toggleWishlist(product)">
+          ❤️
+        </button> -->
+      </div>
+    </div>
+  </div>
+</div>

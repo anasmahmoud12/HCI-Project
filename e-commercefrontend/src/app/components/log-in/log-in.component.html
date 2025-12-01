@@ -1,0 +1,33 @@
+
+<body>
+    
+    <div class="form-container">
+        <h2>Login</h2>
+
+        
+            <div class="field">
+                <label>email</label>
+                <input  [(ngModel)]="email"  type="email" placeholder="Enter first name">
+            </div>
+
+            <div class="field">
+                <label>password</label>
+                <input  [(ngModel)]="password"   type="password" placeholder="Enter last name">
+            </div>
+        
+
+
+        <button  (click)="login()"  class="primary-btn">Login</button>
+
+        <p class="switch-text">
+            not have account make sighUp <a href="#">sighUp</a>
+        </p>
+
+        
+
+      
+    
+    </div>
+
+</body>
+

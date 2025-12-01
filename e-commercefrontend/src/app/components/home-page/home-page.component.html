@@ -1,0 +1,105 @@
+<!-- Header -->
+<header>
+    <div class="header-container">
+        <a routerLink="/home" class="logo">
+            <span class="logo-icon">🛒</span>
+          
+        </a>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" 
+                       placeholder="Search your product..." 
+                       [(ngModel)]="searchQuery"
+                       (keyup.enter)="onSearch()">
+                <button class="search-btn" (click)="onSearch()">🔍</button>
+            </div>
+        </div>
+
+        <nav class="main-nav">
+            <button class="nav-btn" 
+                    [class.active]="activeRoute === 'home'"
+                    (click)="navigateTo('home')">
+                Home
+            </button>
+            <button class="nav-btn" 
+                    [class.active]="activeRoute === 'categories'"
+                    (click)="navigateTo('categories')">
+                Categories
+            </button>
+            <button class="nav-btn" 
+                    [class.active]="activeRoute === 'products'"
+                    (click)="navigateTo('products')">
+                Products
+            </button>
+            <button class="nav-btn" 
+                    [class.active]="activeRoute === 'orders'"
+                    (click)="navigateTo('orders')">
+                Orders
+            </button>
+        </nav>
+
+        <div class="header-icons">
+            <button class="icon-btn" 
+                    title="Cart" 
+                    (click)="navigateTo('cart')">
+                🛒
+            </button>
+            <button class="icon-btn" 
+                    title="Wishlist" 
+                    (click)="navigateTo('wishlist')">
+                ❤️
+            </button>
+            <button class="icon-btn user-btn" 
+                    title="Profile" 
+                    (click)="navigateTo('profile')">
+                👤
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Slider -->
+<div class="slider-container" 
+     (mouseenter)="pauseAutoSlide()" 
+     (mouseleave)="resumeAutoSlide()">
+    
+    <div *ngFor="let slide of slides; let i = index" 
+         class="slide" 
+         [class.active]="currentSlide === i"
+         [style.background-image]="'linear-gradient(135deg, ' + slide.gradientStart + ' 0%, ' + slide.gradientEnd + ' 100%)'">
+        <div class="slide-overlay">
+            <div class="slide-content">
+                <h1 class="slide-title">{{ slide.title }}</h1>
+                <p class="slide-description">{{ slide.description }}</p>
+                <a [routerLink]="slide.link" class="slide-btn">{{ slide.buttonText }}</a>
+            </div>
+        </div>
+    </div>
+
+    <button class="slider-arrow prev" (click)="changeSlide(-1)">❯</button>
+    <button class="slider-arrow next" (click)="changeSlide(1)">❮</button>
+
+    <div class="slider-nav">
+        <span *ngFor="let slide of slides; let i = index" 
+              class="slider-dot" 
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)">
+        </span>
+    </div>
+</div>
+
+<!-- <div>
+    <p class ="text" >the last categories we have  </p>
+</div> -->
+  <!-- <h1 class="trending-title">Trending Categories</h1> -->
+
+<div class="trending-container">
+  <h1 class="trending-title">Trending Categories</h1>
+  <app-view-category></app-view-category>
+</div>
+
+<div class="trending-container">
+  <h1 class="trending-title">Trending Products</h1>
+  <app-view-products></app-view-products>
+</div>
