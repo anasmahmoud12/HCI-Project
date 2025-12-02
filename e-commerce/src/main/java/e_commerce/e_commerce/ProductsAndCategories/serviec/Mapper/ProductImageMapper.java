@@ -1,4 +1,4 @@
-package e_commerce.e_commerce.ProductsAndCategories.services.Mapper;
+package e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper;
 
 import e_commerce.e_commerce.ProductsAndCategories.DTO.productImageDto;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.Product_imagesEntity;

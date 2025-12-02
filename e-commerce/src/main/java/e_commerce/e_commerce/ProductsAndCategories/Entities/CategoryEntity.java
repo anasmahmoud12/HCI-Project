@@ -23,6 +23,8 @@ public class CategoryEntity {
     private String name;
     private  String description;
     private Boolean isactive ;
+    @Lob
+    private byte[]img;
     private LocalDateTime created_At;
     private LocalDateTime update_At;
 //mappedBy mean in table products and forien key without it he will make another table

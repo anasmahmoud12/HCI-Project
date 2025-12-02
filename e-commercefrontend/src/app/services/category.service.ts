@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Category } from '../models/category.model';
+import { CategoryFormData } from '../models/category.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,42 @@ export class CategoryService {
 
   constructor(private http: HttpClient) {}
 
-  createCategory(category: Category): Observable<Category> {
-    return this.http.post<Category>(this.apiUrl, category);
-  }
+  // createCategory(category: Category): Observable<Category> {
+  //   return this.http.post<Category>(this.apiUrl, category);
+  // }
+
+  //  createCategoryWithImage(categoryData: CategoryFormData): Observable<Category> {
+  //   const formData = new FormData();
+    
+  //   formData.append('name', categoryData.name);
+  //   formData.append('description', categoryData.description);
+  //   formData.append('isactive', categoryData.isactive.toString());
+    
+  //   // Append single image if exists
+  //   if (categoryData.image) {
+  //     formData.append('image', categoryData.image, categoryData.image.name);
+  //   }
+    
+  //   return this.http.post<Category>(this.apiUrl, formData);
+  // }
+   createCategoryWithImage(categoryData: CategoryFormData): Observable<any> {
+      const formData = new FormData();
+      
+      formData.append('name', categoryData.name);
+      formData.append('description', categoryData.description);
+          formData.append('isactive', categoryData.isactive.toString());
+
+     
+       if (categoryData.image) {
+      formData.append('image', categoryData.image, categoryData.image.name);
+    }
+      // productData.images.forEach((file) => {
+      //   formData.append('images', file, file.name);
+      // });
+      return this.http.post(`${this.apiUrl}`, formData);
+    }
+    getCategories(): Observable<any[]> {
+      return this.http.get<any[]>('http://localhost:8080/api/categories');
+    }
+
 }

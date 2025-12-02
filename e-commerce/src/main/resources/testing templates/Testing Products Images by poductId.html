@@ -113,21 +113,21 @@
 <body>
     <div class="container">
         <h1>🖼️ Product Images Viewer</h1>
-        
+
         <div class="controls">
-            <input 
-                type="number" 
-                id="productId" 
-                placeholder="Enter Product ID" 
+            <input
+                type="number"
+                id="productId"
+                placeholder="Enter Product ID"
                 value="1"
             />
             <button onclick="loadImages()">Load Images</button>
         </div>
 
         <div id="status"></div>
-        
+
         <div id="imagesGrid" class="images-grid"></div>
-        
+
         <div id="rawData" class="raw-data" style="display: none;"></div>
     </div>
 
@@ -149,13 +149,13 @@
 
             try {
                 const response = await fetch(`http://localhost:8080/api/products/${productId}/images`);
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const images = await response.json();
-                
+
                 console.log('📦 Received data:', images);
 
                 if (!images || images.length === 0) {
@@ -170,7 +170,7 @@
                     const card = document.createElement('div');
                     card.className = 'image-card';
 
-                    const imgSrc = image.img 
+                    const imgSrc = image.img
                         ? `data:image/jpeg;base64,${arrayBufferToBase64(image.img)}`
                         : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect fill="%23ddd" width="300" height="200"/><text x="50%" y="50%" text-anchor="middle" fill="%23999">No Image</text></svg>';
 
@@ -181,8 +181,8 @@
                             <strong>Display Order:</strong> ${image.display_order}<br/>
                             <strong>Product ID:</strong> ${image.productid || 'N/A'}
                             <div>
-                                ${image.is_primary 
-                                    ? '<span class="badge badge-primary">PRIMARY</span>' 
+                                ${image.is_primary
+                                    ? '<span class="badge badge-primary">PRIMARY</span>'
                                     : '<span class="badge badge-secondary">Secondary</span>'}
                             </div>
                         </div>
@@ -203,7 +203,7 @@
         function arrayBufferToBase64(buffer) {
             if (!buffer) return '';
             if (typeof buffer === 'string') return buffer;
-            
+
             let binary = '';
             const bytes = new Uint8Array(buffer);
             for (let i = 0; i < bytes.length; i++) {

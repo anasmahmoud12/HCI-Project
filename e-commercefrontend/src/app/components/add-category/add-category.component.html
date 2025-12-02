@@ -1,26 +1,67 @@
 <div class="container">
   <h2>Add Category</h2>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form" enctype="multipart/form-data">
     
     <!-- Name Field -->
     <div class="form-group">
-      <label>Name</label>
+      <label>Name *</label>
       <input 
         type="text" 
         formControlName="name"
         class="input"
         placeholder="Enter category name">
+      <div class="error-message" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+        <span *ngIf="form.get('name')?.errors?.['required']">Name is required</span>
+        <span *ngIf="form.get('name')?.errors?.['minlength']">
+          Name must be at least 2 characters
+        </span>
+      </div>
     </div>
 
     <!-- Description Field -->
     <div class="form-group">
-      <label>Description</label>
-      <input 
-        type="text" 
+      <label>Description *</label>
+      <textarea 
         formControlName="description"
-        class="input"
-        placeholder="Enter category description">
+        class="textarea"
+        placeholder="Enter category description"
+        rows="4"></textarea>
+      <div class="error-message" *ngIf="form.get('description')?.invalid && form.get('description')?.touched">
+        <span *ngIf="form.get('description')?.errors?.['required']">Description is required</span>
+      </div>
+    </div>
+
+    <!-- Image Upload Field -->
+    <div class="form-group">
+      <label>Category Image</label>
+      <div class="file-upload-area" (click)="triggerFileInput()">
+        <div *ngIf="!selectedFile" class="upload-placeholder">
+          <i class="upload-icon">📁</i>
+          <p>Click to upload image</p>
+          <p class="upload-hint">JPEG, PNG, GIF up to 5MB</p>
+        </div>
+        <div *ngIf="selectedFile" class="upload-preview">
+          <div class="preview-content">
+            <div class="file-info">
+              <strong>{{ selectedFile.name }}</strong>
+              <p class="file-size">{{ getFileSize(selectedFile.size) }}</p>
+            </div>
+            <button type="button" class="btn-remove" (click)="removeImage($event)">×</button>
+          </div>
+        </div>
+        <input 
+          type="file" 
+          id="imageInput"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          style="display: none;">
+      </div>
+      
+      <!-- Image Preview -->
+      <div class="image-preview" *ngIf="previewUrl">
+        <img [src]="previewUrl" alt="Preview" class="preview-image">
+      </div>
     </div>
 
     <!-- Active Checkbox -->
@@ -34,12 +75,23 @@
       </label>
     </div>
 
-    <!-- Save Button -->
-    <button 
-      type="submit"
-      class="btn-submit">
-      Save Category
-    </button>
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button 
+        type="submit"
+        class="btn-submit"
+        [disabled]="form.invalid">
+        <span *ngIf="!isSubmitting">Save Category</span>
+        <span *ngIf="isSubmitting">Saving...</span>
+      </button>
+      
+      <button 
+        type="button"
+        class="btn-reset"
+        (click)="resetForm()">
+        Reset
+      </button>
+    </div>
 
   </form>
 </div>

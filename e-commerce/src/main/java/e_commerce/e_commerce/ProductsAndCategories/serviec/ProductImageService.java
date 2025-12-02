@@ -5,7 +5,7 @@ import e_commerce.e_commerce.ProductsAndCategories.Entities.Product_imagesEntity
 import e_commerce.e_commerce.ProductsAndCategories.Entities.ProductEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.ProductImagesRepository;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.ProductRepository;
-import e_commerce.e_commerce.ProductsAndCategories.services.Mapper.ProductImageMapper;
+import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.ProductImageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
