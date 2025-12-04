@@ -106,3 +106,4 @@ export class AddProductComponent implements OnInit {
     this.primaryImageIndex = 0;
   }
 }
+

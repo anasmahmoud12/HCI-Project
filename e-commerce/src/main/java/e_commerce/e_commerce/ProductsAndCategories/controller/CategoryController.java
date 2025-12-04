@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class CategoryController {
 
     @Autowired
@@ -32,7 +32,7 @@ public class CategoryController {
             @RequestParam("description") String description,
             @RequestParam("isactive") Boolean isactive,
             @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
-
+System.out.println("jhsjhjhsdhj");
         // Build DTO
         CategoryDto categoryDto = CategoryDto.builder()
                 .name(name)
