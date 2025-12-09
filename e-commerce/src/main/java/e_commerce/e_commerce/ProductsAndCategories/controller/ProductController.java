@@ -1,13 +1,17 @@
 package e_commerce.e_commerce.ProductsAndCategories.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import e_commerce.e_commerce.ProductsAndCategories.DTO.ProductDto;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -26,20 +30,137 @@ public class ProductController {
     }
 
     // Update product
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
-        // Make sure ID in path matches ID in body
-        productDto.setId(id);
-        ProductDto updatedProduct = productService.updateProduct(productDto);
-        return ResponseEntity.ok(updatedProduct);
+//    @PutMapping("/{id}")
+//    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
+//        // Make sure ID in path matches ID in body
+//        productDto.setId(id);
+//        ProductDto updatedProduct = productService.updateProduct(productDto);
+//        return ResponseEntity.ok(updatedProduct);
+//    }
+//    @PutMapping(value = "/{id}/with-images", consumes = "multipart/form-data")
+//    public ResponseEntity<ProductDto> updateProductWithImages(
+//            @PathVariable Long id,
+//            @RequestParam("name") String name,
+//            @RequestParam("description") String description,
+//            @RequestParam("priceBefore") Double priceBefore,
+//            @RequestParam("priceAfter") Double priceAfter,
+//            @RequestParam("stock_quantity") Integer stockQuantity,
+//            @RequestParam("categoryId") Long categoryId,
+//            @RequestParam(value = "primaryImageIndex", defaultValue = "0") Integer primaryImageIndex,
+//            @RequestParam(value = "images", required = false) MultipartFile[] images,
+//            @RequestParam(value = "removedImageIds", required = false) String removedImageIdsJson) {
+//
+//        try {
+//            List<Long> removedImageIds = new ArrayList<>();
+//
+//            // Parse removed image IDs if provided
+//            if (removedImageIdsJson != null && !removedImageIdsJson.isEmpty()) {
+//                try {
+//                    ObjectMapper objectMapper = new ObjectMapper();
+//                    removedImageIds = objectMapper.readValue(removedImageIdsJson,
+//                            new TypeReference<List<Long>>() {});
+//                } catch (Exception e) {
+//                    System.err.println("Failed to parse removedImageIds: " + e.getMessage());
+//                }
+//            }
+//
+//            // Convert empty array to null if no images provided
+//            MultipartFile[] newImages = (images != null && images.length > 0) ? images : null;
+//
+//            ProductDto updatedProduct = productService.updateProductWithImages(
+//                    id, name, description, priceBefore, priceAfter, stockQuantity,
+//                    categoryId, primaryImageIndex, newImages, removedImageIds
+//            );
+//
+//            return ResponseEntity.ok(updatedProduct);
+//
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//    }
+    @PutMapping(value = "/{id}/with-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductDto> updateProductWithImages(
+            @PathVariable Long id,
+            @RequestParam("name") String name,
+            @RequestParam("description") String description,
+            @RequestParam("priceBefore") Double priceBefore,
+            @RequestParam("priceAfter") Double priceAfter,
+            @RequestParam("stock_quantity") Integer stockQuantity,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestParam(value = "primaryImageIndex", defaultValue = "0") Integer primaryImageIndex,
+            @RequestParam(value = "images", required = false) MultipartFile[] images,
+            @RequestParam(value = "removedImageIds", required = false) String removedImageIdsJson) {
+
+        try {
+            System.out.println("=== UPDATE PRODUCT REQUEST ===");
+            System.out.println("Product ID: " + id);
+            System.out.println("Name: " + name);
+            System.out.println("Description: " + description);
+            System.out.println("Price Before: " + priceBefore);
+            System.out.println("Price After: " + priceAfter);
+            System.out.println("Stock: " + stockQuantity);
+            System.out.println("Category ID: " + categoryId);
+            System.out.println("Primary Image Index: " + primaryImageIndex);
+            System.out.println("Images count: " + (images != null ? images.length : 0));
+            System.out.println("Removed Image IDs JSON: " + removedImageIdsJson);
+
+            List<Long> removedImageIds = new ArrayList<>();
+
+            // Parse removed image IDs if provided
+            if (removedImageIdsJson != null && !removedImageIdsJson.isEmpty() && !removedImageIdsJson.equals("[]")) {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    removedImageIds = objectMapper.readValue(removedImageIdsJson,
+                            new TypeReference<List<Long>>() {});
+                    System.out.println("Parsed removed image IDs: " + removedImageIds);
+                } catch (Exception e) {
+                    System.err.println("Failed to parse removedImageIds: " + e.getMessage());
+                    System.out.println("Raw JSON: " + removedImageIdsJson);
+                }
+            }
+
+            // Handle empty images array
+            MultipartFile[] newImages = images;
+            if (images == null || images.length == 0 || (images.length == 1 && images[0].isEmpty())) {
+                newImages = new MultipartFile[0];
+                System.out.println("No new images to process");
+            } else {
+                System.out.println("Processing " + newImages.length + " new images");
+            }
+
+            ProductDto updatedProduct = productService.updateProductWithImages(
+                    id, name, description, priceBefore, priceAfter, stockQuantity,
+                    categoryId, primaryImageIndex, newImages, removedImageIds
+            );
+
+            System.out.println("=== UPDATE SUCCESSFUL ===");
+            return ResponseEntity.ok(updatedProduct);
+
+        } catch (Exception e) {
+            System.err.println("=== UPDATE FAILED ===");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
-    // Delete product
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.ok("Product deleted successfully");
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
+
+//    // Delete product
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+//        productService.deleteProduct(id);
+//        return ResponseEntity.ok("Product deleted successfully");
+//    }
 
     // Get all products
     @GetMapping

@@ -18,7 +18,7 @@ public class ProductImageMapper {
                 .id(dto.getId())
                 .img(dto.getImg())
                 .is_primary(dto.getIs_primary())
-                .display_order(dto.getDisplay_order())
+                .displayOrder(dto.getDisplay_order())
                 .build();
     }
 
@@ -32,7 +32,7 @@ public class ProductImageMapper {
                 .id(entity.getId())
                 .img(entity.getImg())
                 .is_primary(entity.getIs_primary())
-                .display_order(entity.getDisplay_order())
+                .display_order(entity.getDisplayOrder())
                 .productid(productId)
                 .build();
     }

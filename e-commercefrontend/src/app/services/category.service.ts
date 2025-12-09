@@ -50,5 +50,28 @@ export class CategoryService {
       return this.http.get<any[]>('http://localhost:8080/api/categories');
     }
 
+    updateCategory(id: number, categoryData: CategoryFormData): Observable<any> {
+    const formData = new FormData();
     
+    // Append text fields
+    formData.append('name', categoryData.name);
+    formData.append('description', categoryData.description);
+    formData.append('isactive', categoryData.isactive.toString());
+    
+    // Append removeImage flag if true
+    if (categoryData.removeImage === true) {
+      formData.append('removeImage', 'true');
+    }
+    
+    // Append image file if provided
+    if (categoryData.image instanceof File) {
+      formData.append('image', categoryData.image);
+    }
+    
+    return this.http.put(`${this.apiUrl}/${id}`, formData);
+  }
+    deleteCategory(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
 }

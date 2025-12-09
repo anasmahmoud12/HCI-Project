@@ -51,17 +51,55 @@ System.out.println("jhsjhjhsdhj");
     }
 
     // Update category
-    @PutMapping("/{id}")
-    public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
-        CategoryDto updatedCategory = categoryService.updateCatagory(id, categoryDto);
+//    @PutMapping("/{id}")
+//    public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
+//        CategoryDto updatedCategory = categoryService.updateCatagory(id, categoryDto);
+//        return ResponseEntity.ok(updatedCategory);
+//    }
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CategoryDto> updateCategory(
+            @PathVariable Long id,
+            @RequestParam("name") String name,
+            @RequestParam("description") String description,
+            @RequestParam("isactive") Boolean isactive,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "removeImage", required = false, defaultValue = "false") boolean removeImage) throws IOException {
+
+        System.out.println("Updating category with ID: " + id);
+
+        // Build DTO
+        CategoryDto categoryDto = CategoryDto.builder()
+                .name(name)
+                .description(description)
+                .isactive(isactive)
+                .build();
+
+        // Handle image
+        if (removeImage) {
+            System.out.println("jkjjhj");
+            // Set image bytes to null to indicate removal
+            categoryDto.setImg(null);
+        } else if (image != null && !image.isEmpty()) {
+            // Convert new image to bytes
+            System.out.println("jjdfggdf");
+            categoryDto.setImg(image.getBytes());
+        }
+        // If no new image and not removing, the service will keep existing image
+
+        // Pass DTO to service
+        CategoryDto updatedCategory = categoryService.updateCategory(id, categoryDto , removeImage);
         return ResponseEntity.ok(updatedCategory);
     }
-
     // Delete category
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteById(id);
-        return ResponseEntity.ok("Category deleted successfully");
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        try {
+            categoryService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // Get all categories

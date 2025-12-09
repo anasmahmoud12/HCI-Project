@@ -1,10 +1,8 @@
 package e_commerce.e_commerce.ProductsAndCategories.Entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
@@ -14,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"category", "productImages"}) // Add this line
+@EqualsAndHashCode(exclude = {"category", "productImages"}) // Add this line
 @Data
 @Table(name="Product_Table")
 
@@ -34,8 +34,12 @@ public class ProductEntity {
 //private byte[]img;
     @ManyToOne
     @JoinColumn(name="catagory_id")
+    @JsonManagedReference
+
     private CategoryEntity category;
-    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonManagedReference
+
     private List<Product_imagesEntity> productImages;
 
 

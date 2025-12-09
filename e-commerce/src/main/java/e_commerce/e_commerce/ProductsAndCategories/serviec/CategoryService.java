@@ -22,42 +22,76 @@ public class CategoryService {
     @Autowired
     private CategoryMapper categoryMapper;
 
-//    public CategoryDto addCategory(CategoryDto catagory) {
+    //    public CategoryDto addCategory(CategoryDto catagory) {
 //        CategoryEntity categoryEntity = categoryMapper.convertToEntity(catagory);
 //        categoryEntity = catagoryRepository.save(categoryEntity);
 //        catagory.setId(categoryEntity.getId());
 //
 //        return catagory;
 //    }
-public CategoryDto addCategory(CategoryDto categoryDto) {
-    CategoryEntity categoryEntity = categoryMapper.convertToEntity(categoryDto);
+    public CategoryDto addCategory(CategoryDto categoryDto) {
+        CategoryEntity categoryEntity = categoryMapper.convertToEntity(categoryDto);
 
-    // Set timestamps
-    if (categoryEntity.getCreated_At() == null) {
-        categoryEntity.setCreated_At(LocalDateTime.now());
-    }
-    categoryEntity.setUpdate_At(LocalDateTime.now());
-
-    // Save
-    categoryEntity = catagoryRepository.save(categoryEntity);
-
-    // Return DTO with ID
-    return categoryMapper.convertToDto(categoryEntity);
-}
-
-    public CategoryDto updateCatagory(Long id, CategoryDto update) {
-        CategoryEntity c = catagoryRepository.findById(id).orElse(null);
-        if (c != null) {
-            c = categoryMapper.convertToEntity(update);
-            c.setUpdate_At(LocalDateTime.now());
-            update.setUpdate_At(LocalDateTime.now());
-            catagoryRepository.save(c);
-
+        // Set timestamps
+        if (categoryEntity.getCreated_At() == null) {
+            categoryEntity.setCreated_At(LocalDateTime.now());
         }
-        return update;
+        categoryEntity.setUpdate_At(LocalDateTime.now());
+
+        // Save
+        categoryEntity = catagoryRepository.save(categoryEntity);
+
+        // Return DTO with ID
+        return categoryMapper.convertToDto(categoryEntity);
+    }
+
+    //    public CategoryDto updateCatagory(Long id, CategoryDto update) {
+//        CategoryEntity c = catagoryRepository.findById(id).orElse(null);
+//        if (c != null) {
+//            c = categoryMapper.convertToEntity(update);
+//            c.setUpdate_At(LocalDateTime.now());
+//            update.setUpdate_At(LocalDateTime.now());
+//            catagoryRepository.save(c);
+//
+//        }
+//        return update;
+//    }
+    public CategoryDto updateCategory(Long id, CategoryDto updateDto, boolean remove_img) {
+        // Find existing category
+        CategoryEntity existingCategory = catagoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+
+        // Update basic fields
+        existingCategory.setName(updateDto.getName());
+        existingCategory.setDescription(updateDto.getDescription());
+        existingCategory.setIsactive(updateDto.getIsactive());
+
+        // Handle image
+        if (updateDto.getImg() != null) {
+            // If img is null in DTO, remove the image
+            existingCategory.setImg(updateDto.getImg());
+        } else if (remove_img) {
+            // If img has bytes, update with new image
+            existingCategory.setImg(null);
+        }
+
+
+        // If img is not provided in DTO (empty), keep existing image
+
+        // Update timestamp
+        existingCategory.setUpdate_At(LocalDateTime.now());
+
+        // Save
+        existingCategory = catagoryRepository.save(existingCategory);
+
+        // Return DTO
+        return categoryMapper.convertToDto(existingCategory);
     }
 
     public void deleteById(Long id) {
+        if (!catagoryRepository.existsById(id)) {
+            throw new RuntimeException("Category not found with id: " + id);
+        }
         catagoryRepository.deleteById(id);
     }
 

@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AddCategoryModalComponent } from './add-category-modal.component';
+import { EditCategoryModalComponent } from './edit-category-modal.component'; // Import the new component
 import { CategoryService } from '../services/category.service';
 import { TruncatePipe } from '../truncate.pipe';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, AddCategoryModalComponent, TruncatePipe],
+  imports: [CommonModule, AddCategoryModalComponent, EditCategoryModalComponent, TruncatePipe],
   template: `
     <div class="categories-page">
       
@@ -44,14 +45,24 @@ import { TruncatePipe } from '../truncate.pipe';
           
           <div class="card-header">
             <div class="category-image">
-      <img 
-  [src]="getImageUrl(category)" 
-  (error)="onImageError($event)" 
-  class="w-24 h-24 object-cover rounded"
-/>
+              <img 
+                [src]="getImageUrl(category)" 
+                (error)="onImageError($event)" 
+                class="w-24 h-24 object-cover rounded"
+              />
               <span [class]="category.isactive ? 'status-badge active' : 'status-badge inactive'">
                 {{ category.isactive ? 'Active' : 'Inactive' }}
               </span>
+              
+              <!-- Edit and Delete Buttons -->
+              <div class="category-actions">
+                <button class="action-btn edit-btn" (click)="openEditModal(category)" title="Edit">
+                  ✏️
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteCategory(category)" title="Delete">
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
           
@@ -70,6 +81,11 @@ import { TruncatePipe } from '../truncate.pipe';
             </div>
           </div>
 
+          <!-- Card Footer with Edit Button -->
+          <div class="card-footer">
+            <button class="btn-view" (click)="viewCategory(category)">View Details</button>
+            <button class="btn-edit" (click)="openEditModal(category)">Edit Category</button>
+          </div>
         </div>
 
         <!-- Empty State -->
@@ -87,15 +103,26 @@ import { TruncatePipe } from '../truncate.pipe';
         <p>Loading categories...</p>
       </div>
 
+      <!-- Add Category Modal -->
       <app-add-category-modal
         *ngIf="showAddModal"
         (categoryAdded)="onCategoryAdded()"
         (modalClosed)="showAddModal = false">
       </app-add-category-modal>
 
+      <!-- Edit Category Modal -->
+      <app-edit-category-modal
+        *ngIf="showEditModal && selectedCategory"
+        [category]="selectedCategory"
+        (categoryUpdated)="onCategoryUpdated()"
+        (modalClosed)="closeEditModal()">
+      </app-edit-category-modal>
+
     </div>
   `,
+  // Keep your existing styles, add these new styles:
   styles: [`
+    /* ... keep all your existing styles ... */
     .categories-page {
       padding: 20px;
       max-width: 1400px;
@@ -523,12 +550,96 @@ import { TruncatePipe } from '../truncate.pipe';
         flex-direction: column;
       }
     }
+    .category-actions {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .category-card:hover .category-actions {
+      opacity: 1;
+    }
+    
+    .action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+    
+    .edit-btn {
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+    }
+    
+    .edit-btn:hover {
+      background: #2563eb;
+      transform: scale(1.1);
+    }
+    
+    .delete-btn {
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+    }
+    
+    .delete-btn:hover {
+      background: #dc2626;
+      transform: scale(1.1);
+    }
+    
+    .card-footer {
+      padding: 16px 20px 20px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-view, .btn-edit {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-view {
+      background: #f8fafc;
+      color: #475569;
+    }
+    
+    .btn-view:hover {
+      background: #e2e8f0;
+    }
+    
+    .btn-edit {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-edit:hover {
+      background: #2563eb;
+    }
   `]
 })
 export class Categories implements OnInit {
-
   showAddModal = false;
+  showEditModal = false;
   categories: any[] = [];
+  selectedCategory: any = null;
   isLoading = false;
 
   constructor(private categoryService: CategoryService) {}
@@ -563,25 +674,59 @@ export class Categories implements OnInit {
     this.loadCategories();
   }
 
-
-getImageUrl(category: any): string {
-  if (!category.img || category.img === '') {
-    // Return a data URL for a simple colored placeholder
-    return 'data:image/svg+xml;base64,' + btoa(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-        <rect width="100" height="100" fill="#f3f4f6"/>
-        <text x="50" y="50" font-family="Arial" font-size="14" fill="#6b7280" text-anchor="middle" dy=".3em">
-          ${category.name ? category.name.charAt(0).toUpperCase() : 'N'}
-        </text>
-      </svg>
-    `);
+  onCategoryUpdated() {
+    this.loadCategories();
   }
 
-  return `data:image/jpeg;base64,${category.img}`;
-}
-onImageError(event: any) {
-  event.target.src = "assets/placeholder-category.png";
-}
+  openEditModal(category: any) {
+    this.selectedCategory = category;
+    this.showEditModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.selectedCategory = null;
+  }
+
+  viewCategory(category: any) {
+    // You can implement view functionality here
+    console.log('View category:', category);
+    alert(`Viewing category: ${category.name}\n\nDescription: ${category.description}`);
+  }
+
+  deleteCategory(category: any) {
+    if (confirm(`Are you sure you want to delete "${category.name}"?\nThis action cannot be undone.`)) {
+      this.categoryService.deleteCategory(category.id).subscribe({
+        next: () => {
+          this.loadCategories();
+          alert(`Category "${category.name}" deleted successfully!`);
+        },
+        error: (error) => {
+          console.error('Error deleting category:', error);
+          alert('Error deleting category. Please try again.');
+        }
+      });
+    }
+  }
+
+  getImageUrl(category: any): string {
+    if (!category.img || category.img === '') {
+      return 'data:image/svg+xml;base64,' + btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+          <rect width="100" height="100" fill="#f3f4f6"/>
+          <text x="50" y="50" font-family="Arial" font-size="14" fill="#6b7280" text-anchor="middle" dy=".3em">
+            ${category.name ? category.name.charAt(0).toUpperCase() : 'N'}
+          </text>
+        </svg>
+      `);
+    }
+    return `data:image/jpeg;base64,${category.img}`;
+  }
+
+  onImageError(event: any) {
+    event.target.src = "assets/placeholder-category.png";
+  }
+
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -592,4 +737,3 @@ onImageError(event: any) {
     });
   }
 }
-

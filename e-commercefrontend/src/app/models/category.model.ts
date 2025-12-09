@@ -6,6 +6,7 @@ export interface Category {
   img?: string; 
   created_At?: string | Date;
   update_At?: string | Date;
+  
   products?: any[];
 }
 
@@ -14,4 +15,5 @@ export interface CategoryFormData {
   description: string;
   isactive: boolean;
   image?: File;  
+  removeImage?: boolean;
 }

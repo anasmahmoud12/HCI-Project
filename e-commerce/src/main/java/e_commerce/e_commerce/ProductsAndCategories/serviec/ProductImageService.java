@@ -73,16 +73,35 @@ public class ProductImageService {
 
         existingImage.setImg(imageDto.getImg());
         existingImage.setIs_primary(imageDto.getIs_primary());
-        existingImage.setDisplay_order(imageDto.getDisplay_order());
+        existingImage.setDisplayOrder(imageDto.getDisplay_order());
 
         Product_imagesEntity updatedImage = productImagesRepository.save(existingImage);
         return productImageMapper.convertToDto(updatedImage);
     }
 
-    public void deleteImage(Long imageId) {
-        productImagesRepository.deleteById(imageId);
-    }
+//    public void deleteImage(Long imageId) {
+//        productImagesRepository.deleteById(imageId);
+//    }
+public void deleteImage(Long imageId) {
+    Product_imagesEntity image = productImagesRepository.findById(imageId)
+            .orElseThrow(() -> new RuntimeException("Image not found with id: " + imageId));
 
+    // Get the product to check if we're deleting a primary image
+    Long productId = image.getProduct().getId();
+
+    // Delete the image
+    productImagesRepository.deleteById(imageId);
+
+    // If we deleted a primary image, set the first remaining image as primary
+    if (image.getIs_primary()) {
+        List< Product_imagesEntity> remainingImages = productImagesRepository.findByProductIdOrderByDisplayOrderAsc(productId);
+        if (!remainingImages.isEmpty()) {
+            Product_imagesEntity newPrimary = remainingImages.get(0);
+            newPrimary.setIs_primary(true);
+            productImagesRepository.save(newPrimary);
+        }
+    }
+}
     public productImageDto setImageAsPrimary(Long productId, Long imageId) {
         // Get all images for the product
         List<Product_imagesEntity> allImages = productImagesRepository.findByProductId(productId);
@@ -110,7 +129,7 @@ public class ProductImageService {
             // Descending order
             for (int i = 0; i < images.size() - 1; i++) {
                 for (int j = i + 1; j < images.size(); j++) {
-                    if (images.get(i).getDisplay_order() < images.get(j).getDisplay_order()) {
+                    if (images.get(i).getDisplayOrder() < images.get(j).getDisplayOrder()) {
                         Product_imagesEntity temp = images.get(i);
                         images.set(i, images.get(j));
                         images.set(j, temp);
@@ -121,7 +140,7 @@ public class ProductImageService {
             // Ascending order (default)
             for (int i = 0; i < images.size() - 1; i++) {
                 for (int j = i + 1; j < images.size(); j++) {
-                    if (images.get(i).getDisplay_order() > images.get(j).getDisplay_order()) {
+                    if (images.get(i).getDisplayOrder() > images.get(j).getDisplayOrder()) {
                         Product_imagesEntity temp = images.get(i);
                         images.set(i, images.get(j));
                         images.set(j, temp);
