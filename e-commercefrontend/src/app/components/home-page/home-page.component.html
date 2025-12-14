@@ -1,105 +1,61 @@
-<!-- Header -->
-<header>
-    <div class="header-container">
-        <a routerLink="/home" class="logo">
-            <span class="logo-icon">🛒</span>
-          
-        </a>
-        
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" 
-                       placeholder="Search your product..." 
-                       [(ngModel)]="searchQuery"
-                       (keyup.enter)="onSearch()">
-                <button class="search-btn" (click)="onSearch()">🔍</button>
-            </div>
-        </div>
-
-        <nav class="main-nav">
-            <button class="nav-btn" 
-                    [class.active]="activeRoute === 'home'"
-                    (click)="navigateTo('home')">
-                Home
-            </button>
-            <button class="nav-btn" 
-                    [class.active]="activeRoute === 'categories'"
-                    (click)="navigateTo('categories')">
-                Categories
-            </button>
-            <button class="nav-btn" 
-                    [class.active]="activeRoute === 'products'"
-                    (click)="navigateTo('products')">
-                Products
-            </button>
-            <button class="nav-btn" 
-                    [class.active]="activeRoute === 'orders'"
-                    (click)="navigateTo('orders')">
-                Orders
-            </button>
-        </nav>
-
-        <div class="header-icons">
-            <button class="icon-btn" 
-                    title="Cart" 
-                    (click)="navigateTo('cart')">
-                🛒
-            </button>
-            <button class="icon-btn" 
-                    title="Wishlist" 
-                    (click)="navigateTo('wishlist')">
-                ❤️
-            </button>
-            <button class="icon-btn user-btn" 
-                    title="Profile" 
-                    (click)="navigateTo('profile')">
-                👤
-            </button>
-        </div>
-    </div>
-</header>
-
-<!-- Slider -->
-<div class="slider-container" 
-     (mouseenter)="pauseAutoSlide()" 
-     (mouseleave)="resumeAutoSlide()">
-    
+<div class="home-page">
+  <!-- Slider Section -->
+  <section class="slider-section">
     <div *ngFor="let slide of slides; let i = index" 
-         class="slide" 
-         [class.active]="currentSlide === i"
-         [style.background-image]="'linear-gradient(135deg, ' + slide.gradientStart + ' 0%, ' + slide.gradientEnd + ' 100%)'">
-        <div class="slide-overlay">
-            <div class="slide-content">
-                <h1 class="slide-title">{{ slide.title }}</h1>
-                <p class="slide-description">{{ slide.description }}</p>
-                <a [routerLink]="slide.link" class="slide-btn">{{ slide.buttonText }}</a>
-            </div>
+         class="slide"
+         [class.active]="i === currentSlide"
+         [class.inactive]="i !== currentSlide">
+      <img [src]="slide.image" [alt]="slide.title" class="slide-background" />
+      <!-- which in above -->
+      <app-navbar [isTransparent]="true"></app-navbar>
+      
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1 class="slide-title">{{ slide.title }}</h1>
+          <p class="slide-description">{{ slide.description }}</p>
         </div>
+      </div>
     </div>
 
-    <button class="slider-arrow prev" (click)="changeSlide(-1)">❯</button>
-    <button class="slider-arrow next" (click)="changeSlide(1)">❮</button>
+    <!-- Navigation Arrows -->
+    <button (click)="prevSlide()" class="slider-arrow left">
+      <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <button (click)="nextSlide()" class="slider-arrow right">
+      <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
 
-    <div class="slider-nav">
-        <span *ngFor="let slide of slides; let i = index" 
-              class="slider-dot" 
-              [class.active]="currentSlide === i"
-              (click)="goToSlide(i)">
-        </span>
+    <!-- Slide Indicators -->
+    <div class="slider-indicators">
+      <button *ngFor="let slide of slides; let i = index"
+              (click)="goToSlide(i)"
+              class="indicator"
+              [class.active]="i === currentSlide"
+              [class.inactive]="i !== currentSlide">
+      </button>
     </div>
-</div>
+  </section>
 
-<!-- <div>
-    <p class ="text" >the last categories we have  </p>
-</div> -->
-  <!-- <h1 class="trending-title">Trending Categories</h1> -->
+  <!-- Products Section -->
+  <section class="products-section">
+    <!-- <app-navbar></app-navbar> -->
+    
+    <div class="products-container">
+      <!-- Filter Buttons -->
+      <div class="filter-buttons">
+        <button class="sort-btn">SORT</button>
+        <button class="filter-btn">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
 
-<div class="trending-container">
-  <h1 class="trending-title">Trending Categories</h1>
-  <app-view-category></app-view-category>
-</div>
 
-<div class="trending-container">
-  <h1 class="trending-title">Trending Products</h1>
-  <app-view-products></app-view-products>
+    </div>
+  </section>
 </div>

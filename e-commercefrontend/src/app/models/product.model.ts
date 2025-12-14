@@ -8,6 +8,8 @@
 //   categoryId: number;
 // }
 
+import { ProductImage } from "./ProductImage";
+
 // export interface ProductFormData {
 //   name: string;
 //   description: string;
@@ -52,4 +54,21 @@ export interface ProductFormData {
   primaryImageIndex: number;
   images: File[];
   removedImageIds?: number[]; // For edit: track images to remove
+}
+
+
+export interface ProductView{
+    id: number;
+  name: string;
+  description: string;
+
+  createdAt: string;  
+  updatedAt: string;
+
+  priceBefore: number;
+  priceAfter: number;
+  stock_quantity: number;
+
+  categoryId: number;
+  productImages: ProductImage[];
 }

@@ -1,15 +1,27 @@
 package e_commerce.e_commerce.ProductsAndCategories.Entities;
-import e_commerce.e_commerce.utils.Entities.Address;
-import e_commerce.e_commerce.utils.Entities.User;
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import e_commerce.e_commerce.utils.Entities.Address;
+import e_commerce.e_commerce.utils.Entities.User;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "orders")
+@Table(name = "order")
 @Data@NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,12 +31,12 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true , nullable = false)
+    @Column(unique = true , nullable = false)//thing unique for the order 
     private String orderNumber;
     private BigDecimal totalPrice;
 
-    private String status;
-    private String paymentMethod;
+    private String status;//we can make enum to it 
+    private String paymentMethod;//////>>>?????
 
 
     @ManyToOne

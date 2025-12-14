@@ -1,3 +1,5 @@
+import { ProductView } from "./product.model";
+
 export interface Category {
   id?: number;
   name: string;
@@ -16,4 +18,15 @@ export interface CategoryFormData {
   isactive: boolean;
   image?: File;  
   removeImage?: boolean;
+}
+export interface CategoryView{
+  id: number;
+  name: string;
+  description: string;
+  isActive: boolean;
+  image?: string;
+  imageFile?: File;///you put in above i not need 
+  createdAt: string;
+  updatedAt: string;
+  products: ProductView[];
 }

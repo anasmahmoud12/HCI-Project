@@ -1,12 +1,18 @@
 package e_commerce.e_commerce.ProductsAndCategories.Entities;
 
-import jakarta.persistence.*;
+import java.math.BigDecimal;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_items")
@@ -24,6 +30,7 @@ public class OrderItemEntity {
     private BigDecimal price;
     private String color ;
     private Integer size;
+    private  BigDecimal totalPrice;
 
     @ManyToOne
     @JoinColumn(name = "order_id" , nullable = false)
