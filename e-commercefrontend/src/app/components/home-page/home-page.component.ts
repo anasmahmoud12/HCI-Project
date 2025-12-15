@@ -2,12 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../nav-bar/nav-bar.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.css'],
-  imports:[FormsModule,CommonModule,NavbarComponent]
+  imports:[FormsModule, CommonModule, NavbarComponent]
 })
 export class HomeComponent implements OnInit, OnDestroy {
   currentSlide: number = 0;
@@ -36,7 +37,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   ];
 
- 
+  constructor(private router: Router) {}
 
   ngOnInit() {
     this.startAutoSlide();
@@ -66,8 +67,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.currentSlide = index;
   }
 
-  addToCart(product: any) {
-    console.log('Added to cart:', product);
-    // Add your cart logic here
+  shopNow() {
+    this.router.navigate(['/products']);
   }
 }

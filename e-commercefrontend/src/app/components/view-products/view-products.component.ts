@@ -2,6 +2,7 @@ import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { ProductView } from "../../models/product.model";
 import { Subject, takeUntil } from 'rxjs';
 import { ProductService } from "../../services/product.service";
+import { CartService } from "../../services/cart.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { NavbarComponent } from "../nav-bar/nav-bar.component";
@@ -10,10 +11,10 @@ import { NavbarComponent } from "../nav-bar/nav-bar.component";
   selector: 'app-products',
   templateUrl: './view-products.component.html',
   styleUrls: ['./view-products.component.css'],
-  imports:[CommonModule,FormsModule,NavbarComponent]
+  imports:[CommonModule, FormsModule, NavbarComponent]
 })
 export class ProductsComponent implements OnInit, OnDestroy {
-  @Input() categoryId: number = 1;
+  @Input() categoryId: number = 0;
   
   products: ProductView[] = [];
   loading: boolean = false;
@@ -21,7 +22,10 @@ export class ProductsComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private cartService: CartService
+  ) {}
 
   ngOnInit() {
     this.loadProducts();
@@ -59,23 +63,56 @@ export class ProductsComponent implements OnInit, OnDestroy {
       alert('This product is out of stock!');
       return;
     }
-    console.log('Added to cart:', product);
-    // Add your cart logic here
+    
+    this.cartService.addToCart(product, 1);
+    
+    // Show success message
+    this.showSuccessMessage(`${product.name} added to cart!`);
+  }
+
+  private showSuccessMessage(message: string) {
+    // You can replace this with a toast notification service if you have one
+    const existingToast = document.querySelector('.success-toast');
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'success-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease-in';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
   }
 
   addToWishlist(product: ProductView) {
     console.log('Added to wishlist:', product);
     // Add your wishlist logic here
   }
-getPrimaryImage(product: ProductView): string {
-  if (!product.productImages || product.productImages.length === 0) {
-    console.log('No images found, using fallback');
-    return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80';
-  }
-  // Return the first image as base64
-  return `data:image/jpeg;base64,${product.productImages[0].img}`;
-}
 
+  getPrimaryImage(product: ProductView): string {
+    if (!product.productImages || product.productImages.length === 0) {
+      console.log('No images found, using fallback');
+      return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80';
+    }
+    return `data:image/jpeg;base64,${product.productImages[0].img}`;
+  }
 
   getDiscountPercentage(product: ProductView): number {
     if (product.priceBefore && product.priceBefore > product.priceAfter) {

@@ -1,8 +1,10 @@
-import { ProductView } from "./product.model";
-
 export interface CartItem {
-  product: ProductView;
+  productId: number;
+  productName: string;
+  productImage: string;
+  price: number;
   quantity: number;
+  stockAvailable: number;
   color?: string;
   size?: number;
 }
