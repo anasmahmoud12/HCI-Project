@@ -59,29 +59,6 @@ error:(res)=>{
   // console.log(res);
 alert("this email used before try another one ");
 }
-
-
-
-
-
-
-
-
-
 })
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
 }

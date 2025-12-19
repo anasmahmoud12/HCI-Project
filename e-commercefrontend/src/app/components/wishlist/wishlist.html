@@ -1,0 +1,92 @@
+<app-navbar [isTransparent]="false"></app-navbar>
+
+<div class="wishlist-page">
+  <div class="wishlist-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">My Wishlist</h1>
+      <p class="page-subtitle">{{ wishlistItems.length }} {{ wishlistItems.length === 1 ? 'item' : 'items' }}</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading wishlist...</p>
+    </div>
+
+    <!-- Wishlist Items -->
+    <div *ngIf="!loading && wishlistItems.length > 0" class="wishlist-grid">
+      <div *ngFor="let item of wishlistItems" class="wishlist-card">
+        <!-- Remove Button -->
+        <button class="remove-btn" (click)="removeFromWishlist(item.product.id)" title="Remove from wishlist">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Discount Badge -->
+        <div *ngIf="getDiscountPercentage(item) > 0" class="discount-badge">
+          -{{ getDiscountPercentage(item) }}%
+        </div>
+
+        <!-- Out of Stock Badge -->
+        <div *ngIf="item.product.stock_quantity <= 0" class="stock-badge">
+          Out of Stock
+        </div>
+
+        <!-- Product Image -->
+        <div class="product-image-wrapper">
+          <img [src]="getPrimaryImage(item)" [alt]="item.product.name" class="product-image" />
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info">
+          <h3 class="product-name">{{ item.product.name }}</h3>
+          <p class="product-description">{{ item.product.description }}</p>
+
+          <!-- Price Section -->
+          <div class="price-section">
+            <span class="current-price">${{ item.product.priceAfter.toFixed(2) }}</span>
+            <span *ngIf="item.product.priceBefore > item.product.priceAfter" class="original-price">
+              ${{ item.product.priceBefore.toFixed(2) }}
+            </span>
+          </div>
+
+          <!-- Stock Info -->
+          <div class="stock-info" *ngIf="item.product.stock_quantity > 0">
+            <span class="stock-text">In Stock: {{ item.product.stock_quantity }}</span>
+          </div>
+
+          <!-- Added Date -->
+          <div class="added-date">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+            </svg>
+            <span>Added {{ item.addedAt | date: 'MMM d, y' }}</span>
+          </div>
+
+          <!-- Action Button -->
+          <button 
+            class="add-to-cart-btn" 
+            (click)="addToCart(item)"
+            [disabled]="item.product.stock_quantity <= 0">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Add to Cart</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && wishlistItems.length === 0" class="empty-state">
+      <svg width="120" height="120" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+      <h2>Your wishlist is empty</h2>
+      <p>Start adding products you love to your wishlist!</p>
+      <a href="/products" class="browse-btn">Browse Products</a>
+    </div>
+  </div>
+</div>

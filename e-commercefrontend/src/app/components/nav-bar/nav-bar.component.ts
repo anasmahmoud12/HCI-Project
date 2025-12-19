@@ -1,14 +1,15 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';  // ← Import from @angular/common
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
+import { WishlistService } from '../../services/wishlist.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
-  standalone: true,  // ← Add this
-  imports: [CommonModule, FormsModule],  // ← Now it's correct
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
 })
@@ -18,19 +19,29 @@ export class NavbarComponent implements OnInit, OnDestroy {
   
   searchQuery: string = '';
   cartItemCount: number = 0;
+  wishlistItemCount: number = 0;
   
   private destroy$ = new Subject<void>();
 
   constructor(
     private cartService: CartService,
+    private wishlistService: WishlistService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    // Subscribe to cart updates
     this.cartService.cart$
       .pipe(takeUntil(this.destroy$))
       .subscribe(cart => {
         this.cartItemCount = cart.totalItems;
+      });
+
+    // Subscribe to wishlist updates
+    this.wishlistService.wishlist$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(wishlist => {
+        this.wishlistItemCount = wishlist.length;
       });
   }
 
@@ -48,7 +59,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   goToWishlist() {
-    console.log('Navigate to wishlist');
+    this.router.navigate(['/wishlist']);
   }
 
   goToProfile() {
