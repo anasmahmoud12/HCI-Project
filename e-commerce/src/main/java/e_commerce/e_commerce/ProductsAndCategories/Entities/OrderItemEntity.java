@@ -27,10 +27,10 @@ public class OrderItemEntity {
 
     private int quantity;
     // We store the price here so just in case the price changed
-    private BigDecimal price;
-    private String color ;
-    private Integer size;
-    private  BigDecimal totalPrice;
+    private double price;
+    //    private String color ;
+//    private Integer size;
+    private  double totalPrice;
 
     @ManyToOne
     @JoinColumn(name = "order_id" , nullable = false)

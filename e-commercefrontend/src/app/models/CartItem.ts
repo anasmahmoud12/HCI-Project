@@ -5,6 +5,6 @@ export interface CartItem {
   price: number;
   quantity: number;
   stockAvailable: number;
-  color?: string;
-  size?: number;
+  // color?: string;
+  // size?: number;
 }

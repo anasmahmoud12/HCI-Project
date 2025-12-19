@@ -1,99 +1,126 @@
 package e_commerce.e_commerce.ProductsAndCategories.serviec;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.UUID;
-
-import org.springframework.stereotype.Service;
-
 import e_commerce.e_commerce.ProductsAndCategories.DTO.OrderDto;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.OrderEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.OrderItemEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.ProductEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.OrderRepository;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.ProductRepository;
-import e_commerce.e_commerce.utils.Entities.Address;
+import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.OrderMapper;
 import e_commerce.e_commerce.utils.Entities.User;
-import e_commerce.e_commerce.utils.Repasitories.AddressRepository;
 import e_commerce.e_commerce.utils.Repasitories.UserRepository;
-import jakarta.transaction.Transactional;
+//import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-@Transactional() 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class OrderService {
 
-   private final OrderRepository orderRepository;
-   private final UserRepository userRepository ;
-   private final AddressRepository addressRepository;
-   private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
-   @Transactional //if anything fails return back so good!
-   public OrderEntity createOrder(Long userId, OrderDto request) {
+    @Transactional
+    public OrderEntity createOrder(Long userId, OrderDto orderDto) {
+        // 1. Validate user exists
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-       //1. validate the existence of the uer maybe
+        // 2. Create order entity using mapper
+        OrderEntity order = OrderMapper.toEntity(orderDto, user);
 
-       User user = userRepository.findById(userId)
-               .orElseThrow(() -> new RuntimeException("user not there"));
+        // 3. Validate products and create order items
+        List<OrderItemEntity> orderItems = new ArrayList<>();
+        double calculatedTotal = 0.0;
 
-       //2. validate the address
-       Address address = addressRepository.findById(request.getAddressId())
-               .orElseThrow(() -> new RuntimeException("address not there"));
+        for (OrderDto.OrderItemRequest itemRequest : orderDto.getItems()) {
+            // Get product from database
+            ProductEntity product = productRepository.findById(itemRequest.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + itemRequest.getProductId()));
 
-       //3. create the object of the order
-       OrderEntity order = OrderEntity.builder()
-               .user(user)
-               .shippingAddress(address)
-               .paymentMethod(request.getPaymentMethod())
-               .status("PENDING!")
-               .orderItems(new ArrayList<>())
-               .createdAt(LocalDateTime.now())
-               .orderNumber((UUID.randomUUID().toString()))
-               .build();
+            // Check stock availability
+            if (product.getStock_quantity() < itemRequest.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getName() +
+                        ". Available: " + product.getStock_quantity() +
+                        ", Requested: " + itemRequest.getQuantity());
+            }
 
-       BigDecimal calculatedTotal = BigDecimal.ZERO;
+            // Update product stock
+            product.setStock_quantity(product.getStock_quantity() - itemRequest.getQuantity());
+            productRepository.save(product);
 
-       for (OrderDto.OrderItemRequest itemRequest : request.getItems()){
+            // Create order item using mapper
+            OrderItemEntity orderItem = OrderMapper.toOrderItemEntity(itemRequest, product, order);
+            orderItems.add(orderItem);
 
-           //GET THE PRODUCT FROM THE DATABASE
-           ProductEntity product = productRepository.findById(itemRequest.getProductId())
-                   .orElseThrow(() -> new RuntimeException("product not there: " + itemRequest.getProductId()));
+            // Add to calculated total
+            calculatedTotal += itemRequest.getTotalPrice();
+        }
 
-           //check the stock "we can remove that i think " yes as not in stock not put in the front or disapple chart 
-        //    if(product.getStock_quantity()Quantity() < itemRequest.getQuantity()){
-        //        throw new RuntimeException("product quantity less than item quantity sorry.");
+        // 4. Set order items and validate total price
+        order.setOrderItems(orderItems);
 
-        //    }
+        // Optional: Validate frontend total matches calculated total
+        if (Math.abs(calculatedTotal - orderDto.getTotalPriceOfOrder()) > 0.01) {
+            throw new RuntimeException("Total price mismatch. Calculated: " + calculatedTotal +
+                    ", Received: " + orderDto.getTotalPriceOfOrder());
+        }
 
-                   BigDecimal itemTotal = BigDecimal.valueOf(itemRequest.getPriceOfOne()).multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+        order.setTotalPrice(calculatedTotal);
 
-           //create the orderitem entity
+        // 5. Save order
+        return orderRepository.save(order);
+    }
 
-           OrderItemEntity orderItemEntity = OrderItemEntity.builder()
-                   .product(product)
-                   .quantity(itemRequest.getQuantity())
-                   .price(BigDecimal.valueOf(itemRequest.getPriceOfOne()))//get price 
-                   .order(order)
-                   .totalPrice(itemTotal)//total price for this item 
-                   .build();
-                //   price of one not now as when i make the buy the price can be dirrent 
+    // Get all orders for a user
+    @Transactional(readOnly = true)
 
+    public List<OrderEntity> getUserOrders(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-           calculatedTotal = calculatedTotal.add(itemTotal);//to put in order
+        return orderRepository.findByUserOrderByCreatedAtDesc(user);
+    }
 
-           order.getOrderItems().add(orderItemEntity);
+    // Get single order by ID (with user validation)
+    @Transactional(readOnly = true)
 
+    public OrderEntity getOrderById(Long orderId, Long userId) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
+        // Validate that the order belongs to the user
+        if (!order.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized access to order");
+        }
 
-       }
-       //get final price
-       order.setTotalPrice(calculatedTotal);
+        return order;
+    }
 
-       //save to the database
-       return orderRepository.save(order);
+    // Cancel order (change status)
+    @Transactional
+    public OrderEntity cancelOrder(Long orderId, Long userId) {
+        OrderEntity order = getOrderById(orderId, userId);
 
+        // Only allow cancellation if order is still pending
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new RuntimeException("Cannot cancel order with status: " + order.getStatus());
+        }
 
-   }
+        // Restore product stock
+        for (OrderItemEntity orderItem : order.getOrderItems()) {
+            ProductEntity product = orderItem.getProduct();
+            product.setStock_quantity(product.getStock_quantity() + orderItem.getQuantity());
+            productRepository.save(product);
+        }
+
+        order.setStatus("CANCELLED");
+        return orderRepository.save(order);
+    }
 }

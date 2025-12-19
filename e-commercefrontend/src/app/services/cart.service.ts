@@ -1,8 +1,10 @@
+// services/cart.service.ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Cart } from '../models/Cart';
 import { CartItem } from '../models/CartItem';
 import { ProductView } from '../models/product.model';
+import { OrderDto, OrderItemRequest } from '../models/Order';
 
 @Injectable({
   providedIn: 'root'
@@ -116,7 +118,7 @@ export class CartService {
     if (itemIndex > -1) {
       const item = currentCart.items[itemIndex];
       
-      //check if the stock is  availabile
+      // Check if the stock is available
       if (quantity > item.stockAvailable) {
         alert(`Cannot add more items. Only ${item.stockAvailable} available in stock.`);
         return;
@@ -148,5 +150,37 @@ export class CartService {
 
   getItemCount(): number {
     return this.getCart().totalItems;
+  }
+
+  // NEW METHOD: Convert cart to OrderDto for backend
+  convertCartToOrderDto(): OrderDto {
+    const cart = this.getCart();
+    
+    if (cart.items.length === 0) {
+      throw new Error('Cart is empty');
+    }
+
+    const orderItems: OrderItemRequest[] = cart.items.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      priceOfOne: item.price, // Current price from cart (should be priceAfter)
+      totalPrice: item.price * item.quantity
+    }));
+
+    return {
+      status: 'PENDING', // Optional, backend will set default
+      totalPriceOfOrder: cart.total,
+      items: orderItems
+    };
+  }
+
+  // NEW METHOD: Clear cart after successful order
+  clearCartAfterOrder(): void {
+    this.clearCart();
+  }
+
+  // NEW METHOD: Get cart item by product ID
+  getCartItem(productId: number): CartItem | undefined {
+    return this.getCart().items.find(item => item.productId === productId);
   }
 }

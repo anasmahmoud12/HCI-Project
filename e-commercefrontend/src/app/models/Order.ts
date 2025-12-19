@@ -1,21 +1,48 @@
-import { Address } from "./Address";
-import { OrderItemEntity, OrderItemRequest } from "./OrderItemEntity";
-import { User } from "./User";
+// models/Order.ts
 
-export interface OrderEntity {
+// ========== REQUEST MODELS (for placing orders) ==========
+export interface OrderDto {
+  status?: string; // Optional - backend will set default to PENDING
+  totalPriceOfOrder: number;
+  items: OrderItemRequest[];
+}
+
+export interface OrderItemRequest {
+  productId: number;
+  quantity: number;
+  priceOfOne: number; // Current price at time of order
+  totalPrice: number;
+}
+
+// ========== RESPONSE MODELS (from backend) ==========
+export interface OrderResponse {
   id: number;
   orderNumber: string;
   totalPrice: number;
-  status: string; // 'PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'
-  paymentMethod: string;
+  status: string;
   createdAt: string;
-  user?: User;
-  shippingAddress: Address;
-  orderItems: OrderItemEntity[];
+  orderItems: OrderItemResponse[];
+  user: UserBasicInfo;
 }
-//for request
-export interface OrderDto {
-  addressId: number;
-  paymentMethod: string;
-  items: OrderItemRequest[];
+
+export interface OrderItemResponse {
+  id: number;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+  product: ProductBasicInfo;
+}
+
+export interface ProductBasicInfo {
+  id: number;
+  name: string;
+  description: string;
+  priceBefore: number;
+  priceAfter: number;
+}
+
+export interface UserBasicInfo {
+  id: number;
+  firstName: string;
+  email: string;
 }

@@ -1,3 +1,4 @@
+// components/cart/cart.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,8 +6,11 @@ import { Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { Cart } from '../../models/Cart';
 import { CartItem } from '../../models/CartItem';
+
 import { Subject, takeUntil } from 'rxjs';
 import { NavbarComponent } from '../nav-bar/nav-bar.component';
+import { OrderService } from '../../services/OrderService';
+import { UserService } from '../../services/UserService';
 
 @Component({
   selector: 'app-cart',
@@ -23,10 +27,13 @@ export class CartComponent implements OnInit, OnDestroy {
     total: 0
   };
 
+  isPlacingOrder = false;
   private destroy$ = new Subject<void>();
 
   constructor(
     private cartService: CartService,
+    private orderService: OrderService,
+    private userService: UserService,
     private router: Router
   ) {}
 
@@ -79,7 +86,75 @@ export class CartComponent implements OnInit, OnDestroy {
       alert('Your cart is empty!');
       return;
     }
-    // Navigate to checkout page
-    this.router.navigate(['/checkout']);
+
+    // Check if user is logged in
+    if (!this.userService.isLoggedIn()) {
+      alert('Please login to place an order');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/cart' } });
+      return;
+    }
+
+    if (!confirm('Are you sure you want to place this order?')) {
+      return;
+    }
+
+    this.isPlacingOrder = true;
+
+    try {
+      // Convert cart to OrderDto
+      const orderDto = this.cartService.convertCartToOrderDto();
+      console.log('Sending order to backend:', orderDto);
+      
+      // Send to backend
+      this.orderService.placeOrder(orderDto).subscribe({
+        next: (orderResponse) => {
+          this.isPlacingOrder = false;
+          console.log('Order placed successfully:', orderResponse);
+          
+          // Clear cart after successful order
+          this.cartService.clearCartAfterOrder();
+          
+          // Show success message
+          alert(`✅ Order placed successfully!\nOrder #: ${orderResponse.orderNumber}\nTotal: $${orderResponse.totalPrice.toFixed(2)}`);
+          
+          // Navigate to order confirmation or home page
+          this.router.navigate(['/order-confirmation', orderResponse.id]);
+        },
+        error: (error) => {
+          this.isPlacingOrder = false;
+          console.error('Error placing order:', error);
+          
+          if (error.status === 400) {
+            // Handle specific errors from backend (e.g., insufficient stock)
+            const errorMessage = error.error || 'Unknown error';
+            alert(`❌ Order failed: ${errorMessage}`);
+            
+            // If stock error, refresh cart from backend
+            if (errorMessage.includes('stock') || errorMessage.includes('Stock')) {
+              // Optionally refresh product data or show specific message
+              alert('Some items in your cart may be out of stock. Please update your cart.');
+            }
+          } else if (error.status === 401) {
+            alert('❌ Please login to place an order');
+            this.router.navigate(['/login']);
+          } else if (error.status === 403) {
+            alert('❌ You are not authorized to place an order');
+          } else if (error.status === 404) {
+            alert('❌ Product not found. Please update your cart.');
+          } else {
+            alert('❌ Failed to place order. Please try again.');
+          }
+        }
+      });
+    } catch (error: any) {
+      this.isPlacingOrder = false;
+      console.error('Error creating order:', error);
+      alert(error.message || '❌ Failed to create order. Please try again.');
+    }
+  }
+
+  // Calculate item total
+  calculateItemTotal(item: CartItem): number {
+    return item.price * item.quantity;
   }
 }

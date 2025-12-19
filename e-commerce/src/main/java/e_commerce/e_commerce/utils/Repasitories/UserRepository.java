@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User,Long> {
-//    public User findByEmail(String email){
+    //    public User findByEmail(String email){
 //        List<User> users=this.findAll();
 //        for(User user : users){
 //            if(user.getEmail().equals(email)){
@@ -17,5 +17,5 @@ public interface UserRepository extends JpaRepository<User,Long> {
 //        return null;
 //    }
 //    this is low performance than above
-Optional<User> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 }

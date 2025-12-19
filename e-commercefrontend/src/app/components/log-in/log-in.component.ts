@@ -1,67 +1,76 @@
-import { errorContext } from 'rxjs/internal/util/errorContext';
+// src/app/components/log-in/log-in.component.ts
 import { Component } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../services/UserService';
-import { User } from '../../models/User';
+import { Router, RouterLink } from '@angular/router';
+import { NavbarComponent } from '../nav-bar/nav-bar.component';
+import { LoginRequest, UserService } from '../../services/UserService';
+// import { UserService, LoginRequest } from '../../services/user.service'; // Changed import
 
 @Component({
-  selector: 'app-log-in',
-  imports: [FormsModule],
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
   templateUrl: './log-in.component.html',
-  styleUrl: './log-in.component.css'
+  styleUrls: ['./log-in.component.css']
 })
-export class LogInComponent {
+export class LoginComponent {
+  email = '';
+  password = '';
+  
+  loading = false;
+  errorMessage = '';
 
-  email!:string;
-  password!:string;
-  firstName!:string;
-  lastName!:string;
-constructor(
-  private service:UserService,
-){}
+  constructor(
+    private userService: UserService, // Changed from authService
+    private router: Router
+  ) {}
 
-  login(){
-    // console.log('here in login');
-    // console.log(this.email);
-    // console.log(this.password);
-    if(this.email==null||this.password==null||this.firstName==null||this.lastName==null){
+  login() {
+    console.log('try to login')
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Please fill in all fields';
+      alert('Please fill in all fields');
       return;
     }
-// make request here 
 
-// const l=this.loginmapper.makeLongin(this.email,this.password);
-const l:User={
-  firstName: this.firstName,
-  password: this.password,
-  email: this.email,
-  lastName: this.lastName,
-  id: 0,
-  addresses: []
-};
-console.log("we make login ");
-this.service.login(l).subscribe({
-      next:(res)=>{
-        console.log('Success!', res);
-        localStorage.setItem("token", res); 
+    this.loading = true;
+    this.errorMessage = '';
+
+    const credentials: LoginRequest = {
+      email: this.email,
+      password: this.password
+    };
+
+    this.userService.login(credentials).subscribe({ // Changed to userService
+      next: (response) => {
+        this.loading = false;
+        console.log('Login successful!', response);
+        console.log('User ID:', response.id);
+        console.log('User Name:', response.firstName, response.lastName);
+        console.log('Token:', response.jwtToken);
+        
+        alert(`Welcome ${response.firstName} ${response.lastName}!`);
+        
+        // Navigate to home
+        this.router.navigate(['/home']);
+        
+        // Clear form
         this.email = '';
         this.password = '';
-        this.lastName='';
-        this.firstName='';
-        alert('Login successful!');
       },
-      error:(err)=>{
-        console.log('Error:', err);
-        // console.log(err);
-        if(err.status === 409){
-          alert('Password or email not correct');
+      error: (error) => {
+        this.loading = false;
+        console.error('Login error:', error);
+        
+        if (error.status === 401 || error.status === 409) {
+          this.errorMessage = 'Invalid email or password';
+          alert('Invalid email or password');
         } else {
-          alert('Login failed');
+          this.errorMessage = 'Login failed. Please try again.';
+          alert('Login failed. Please try again.');
         }
       }
     });
-
   }
-
 }
-

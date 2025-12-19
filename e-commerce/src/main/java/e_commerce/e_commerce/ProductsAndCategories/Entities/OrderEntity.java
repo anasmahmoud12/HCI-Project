@@ -1,3 +1,4 @@
+
 package e_commerce.e_commerce.ProductsAndCategories.Entities;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,7 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "order")
+@Table(name = "orders")
 @Data@NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -33,19 +34,19 @@ public class OrderEntity {
 
     @Column(unique = true , nullable = false)//thing unique for the order 
     private String orderNumber;
-    private BigDecimal totalPrice;
+    private double totalPrice;
 
     private String status;//we can make enum to it 
-    private String paymentMethod;//////>>>?????
+//    private String paymentMethod;//////>>>?????
 
 
     @ManyToOne
     @JoinColumn(name ="user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name="shipping_address_id", nullable = false)
-    private Address shippingAddress;
+//    @ManyToOne
+//    @JoinColumn(name="shipping_address_id", nullable = false)
+//    private Address shippingAddress;
 
     private LocalDateTime createdAt;
 
