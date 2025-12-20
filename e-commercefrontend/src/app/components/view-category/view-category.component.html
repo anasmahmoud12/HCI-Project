@@ -1,15 +1,60 @@
+<app-navbar></app-navbar>
+<div class="categories-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1 class="main-title"> Categories</h1>
+    <p class="subtitle">Discover our most  product categories</p>
+  </div>
 
-  <!-- <h1 class="trending-title">Trending Categories</h1> -->
-  
-  <div class="categories-grid">
-    <div class="category-card" *ngFor="let category of catagories">
-      <div class="card-image">
-       <img 
-    [src]="'data:image/jpeg;base64,' + category.img" 
-    [alt]="category.name" 
-    loading="lazy">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading categories...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <p>{{ error }}</p>
+    <button (click)="loadCategories()" class="retry-btn">Try Again</button>
+  </div>
+
+  <!-- Categories Grid -->
+  <div *ngIf="!loading && !error" class="categories-grid">
+    <div 
+      *ngFor="let category of categories" 
+      class="category-card"
+      (click)="navigateToProducts(category.id)">
+      <div class="card-image-wrapper">
+        <img 
+          [src]="getCategoryImage(category)" 
+          [alt]="category.name"
+          class="category-image">
+        <div class="card-overlay">
+          <button class="explore-btn">
+            <span>Explore</span>
+            <svg class="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
       </div>
-      <h3 class="card-title">{{ category.description }}</h3>
-       <!-- <h3>name</h3> -->
+      <div class="card-content">
+        <h3 class="category-name">{{ category.name }}</h3>
+        <p class="category-description">{{ category.description }}</p>
+      </div>
     </div>
   </div>
+
+  <!-- View All Button -->
+  <div *ngIf="!loading && !error && categories.length > 0" class="view-all-container">
+    <button (click)="navigateToAllProducts()" class="view-all-btn">
+      View All Products
+      <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+      </svg>
+    </button>
+  </div>
+</div>

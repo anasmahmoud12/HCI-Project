@@ -24,7 +24,7 @@ export interface CategoryView{
   name: string;
   description: string;
   isActive: boolean;
-  image?: string;
+  img?: string;
   imageFile?: File;///you put in above i not need 
   createdAt: string;
   updatedAt: string;

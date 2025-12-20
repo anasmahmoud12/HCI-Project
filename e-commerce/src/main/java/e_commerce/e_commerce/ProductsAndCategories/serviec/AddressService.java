@@ -7,9 +7,11 @@ import e_commerce.e_commerce.utils.Repasitories.AddressRepository;
 import e_commerce.e_commerce.utils.Repasitories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 @RequiredArgsConstructor
 @Service
-
+@Transactional
 public class AddressService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;

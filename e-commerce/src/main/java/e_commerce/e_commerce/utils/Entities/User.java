@@ -49,9 +49,14 @@ public class User {
     @Column(nullable = false)
     private RoleName role;
 
-    @Lob
-    @JsonIgnore
-    private byte[] img;
+
+
+//    @Lob
+//    @JsonIgnore
+//    private byte[] img;
+
+
+
 
     // Mapped by user as this is the field in address which has the relationship
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)

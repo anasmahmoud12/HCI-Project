@@ -23,6 +23,7 @@ import { HomeComponent } from './components/home-page/home-page.component';
 import { CartComponent } from './components/cart/cart.component';
 import { ProductsComponent } from './components/view-products/view-products.component';
 import { OrderHistoryComponent } from './components/orders-component/orders-component';
+import { CategoriesComponent } from './components/view-category/view-category.component';
 // import { OrdersComponent } from './components/orders-component/orders-component';
 
 export const routes: Routes = [
@@ -32,6 +33,14 @@ export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   {path:'cart',component:CartComponent},
   // {path:'orders',component:}
-  {path:'product',component:ProductsComponent},
-  {path:'orders',component:OrderHistoryComponent}
+  {path:'products',component:ProductsComponent},
+  {path:'orders',component:OrderHistoryComponent},
+   {
+    path: 'products/:categoryId',
+    component: ProductsComponent
+  },
+  {
+    path: 'categories',
+    component: CategoriesComponent
+  },
 ];

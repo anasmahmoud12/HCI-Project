@@ -1,4 +1,5 @@
-import { Component, Input, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductView } from "../../models/product.model";
 import { Subject, takeUntil } from 'rxjs';
 import { ProductService } from "../../services/product.service";
@@ -9,12 +10,13 @@ import { NavbarComponent } from "../nav-bar/nav-bar.component";
 
 @Component({
   selector: 'app-products',
+  standalone: true,
   templateUrl: './view-products.component.html',
   styleUrls: ['./view-products.component.css'],
-  imports:[CommonModule, FormsModule, NavbarComponent]
+  imports: [CommonModule, FormsModule, NavbarComponent]
 })
 export class ProductsComponent implements OnInit, OnDestroy {
-  @Input() categoryId: number = 0;
+  categoryId: number = 0;
   
   products: ProductView[] = [];
   loading: boolean = false;
@@ -24,11 +26,17 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   constructor(
     private productService: ProductService,
-    private cartService: CartService
+    private cartService: CartService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.loadProducts();
+    // Listen to route parameter changes
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.categoryId = params['categoryId'] ? +params['categoryId'] : 0;
+      this.loadProducts();
+    });
   }
 
   ngOnDestroy() {
@@ -40,6 +48,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
+    console.log(this.categoryId);
     const request = this.categoryId === 0 
       ? this.productService.getAllProducts()
       : this.productService.getProductsByCategory(this.categoryId);
@@ -71,7 +80,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   private showSuccessMessage(message: string) {
-    // You can replace this with a toast notification service if you have one
     const existingToast = document.querySelector('.success-toast');
     if (existingToast) {
       existingToast.remove();
@@ -116,12 +124,16 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   getDiscountPercentage(product: ProductView): number {
     if (product.priceBefore && product.priceBefore > product.priceAfter) {
-      return Math.round(((product.priceBefore - product.priceAfter) / product.priceBefore) * 100);
+      return Math.round(((product.priceBefore - product.priceAfter) / product.priceAfter) * 100);
     }
     return 0;
   }
 
   isInStock(product: ProductView): boolean {
     return product.stock_quantity > 0;
+  }
+
+  goBackToCategories() {
+    this.router.navigate(['/categories']);
   }
 }

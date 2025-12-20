@@ -6,6 +6,7 @@ import e_commerce.e_commerce.ProductsAndCategories.Repositories.CategoryReposito
 import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.CategoryMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,6 +17,8 @@ import java.util.List;
 //any update on list of products of catagory be in products not here
 //we donot make catagory with list of products then we add
 @Service
+@Transactional
+
 public class CategoryService {
     @Autowired
     private CategoryRepository catagoryRepository;

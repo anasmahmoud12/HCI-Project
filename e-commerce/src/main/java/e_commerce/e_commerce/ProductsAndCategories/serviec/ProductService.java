@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class ProductService {
     @Autowired
     ProductRepository productRepository;
