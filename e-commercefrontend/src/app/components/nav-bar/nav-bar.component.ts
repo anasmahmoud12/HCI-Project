@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { CartService } from '../../services/cart.service';
+import { WishlistService } from '../../services/wishlist.service';
 import { Subject, takeUntil, filter } from 'rxjs';
 import { SearchService } from '../../services/SearchService';
 
@@ -20,12 +21,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
   searchQuery: string = '';
   cartItemCount: number = 0;
   currentRoute: string = '';
+  wishlistItemCount: number = 0 ; 
   
   private destroy$ = new Subject<void>();
 
   constructor(
     private cartService: CartService,
     private searchService: SearchService, 
+    private wishlistService: WishlistService,
     private router: Router
   ) {}
 
@@ -34,6 +37,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(cart => {
         this.cartItemCount = cart.totalItems;
+      });
+
+       this.wishlistService.wishlist$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(wishlist => {
+        this.wishlistItemCount = wishlist.length;
       });
 
     // Track current route
@@ -66,6 +75,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   goToWishlist() {
+    this.router.navigate(['/wishlist']);
     console.log('Navigate to wishlist');
   }
 
