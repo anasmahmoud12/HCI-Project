@@ -275,6 +275,63 @@ public ProductDto updateProductWithImages(
 
         return savedProduct;
     }
+
+
+
+
+
+    public List<ProductDto> getAllProductsSorted(String sortBy) {
+        List<ProductEntity> productEntities;
+
+        switch (sortBy) {
+            case "price":
+                productEntities = productRepository.findAllOrderByPriceAsc();
+                break;
+            case "discount":
+                productEntities = productRepository.findAllOrderByDiscountDesc();
+                break;
+            case "date":
+            default:
+                productEntities = productRepository.findAll(); // Already sorted by date from DB
+                break;
+        }
+
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (ProductEntity p : productEntities) {
+            productDtos.add(productMapper.convertToDto(p));
+        }
+        return productDtos;
+    }
+
+    public List<ProductDto> getProductsByCategorySorted(Long categoryId, String sortBy) {
+        List<ProductEntity> productEntities;
+
+        switch (sortBy) {
+            case "price":
+                productEntities = productRepository.findByCategoryIdOrderByPriceAsc(categoryId);
+                break;
+            case "discount":
+                productEntities = productRepository.findByCategoryIdOrderByDiscountDesc(categoryId);
+                break;
+            case "date":
+            default:
+                productEntities = productRepository.findByCategoryId(categoryId); // Already sorted by date
+                break;
+        }
+
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (ProductEntity p : productEntities) {
+            productDtos.add(productMapper.convertToDto(p));
+        }
+        return productDtos;
+    }
+
+
+
+
+
+
+
 }
 
 

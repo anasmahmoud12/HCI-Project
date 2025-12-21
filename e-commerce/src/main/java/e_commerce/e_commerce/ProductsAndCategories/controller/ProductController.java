@@ -237,7 +237,21 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    @GetMapping("/sorted")
+    public ResponseEntity<List<ProductDto>> getAllProductsSorted(
+            @RequestParam(value = "sortBy", defaultValue = "date") String sortBy) {
+        List<ProductDto> products = productService.getAllProductsSorted(sortBy);
+        return ResponseEntity.ok(products);
+    }
 
+    // Get products by category with sorting
+    @GetMapping("/category/{categoryId}/sorted")
+    public ResponseEntity<List<ProductDto>> getProductsByCategorySorted(
+            @PathVariable Long categoryId,
+            @RequestParam(value = "sortBy", defaultValue = "date") String sortBy) {
+        List<ProductDto> products = productService.getProductsByCategorySorted(categoryId, sortBy);
+        return ResponseEntity.ok(products);
+    }
 
 
 

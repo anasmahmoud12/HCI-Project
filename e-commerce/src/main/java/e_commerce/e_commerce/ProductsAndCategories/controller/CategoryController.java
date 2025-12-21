@@ -130,5 +130,7 @@ System.out.println("jhsjhjhsdhj");
         List<CategoryDto> categories = searchService.searchCategories(query);
         return ResponseEntity.ok(categories);
     }
+
+
     
 }

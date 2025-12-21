@@ -24,4 +24,28 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
          "LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')))")
  List<ProductEntity> searchProductsByCategory(@Param("query") String query,
                                               @Param("categoryId") Long categoryId);
+
+
+
+ @Query("SELECT p FROM ProductEntity p ORDER BY p.priceAfter ASC")
+ List<ProductEntity> findAllOrderByPriceAsc();
+
+ // Sort all products by discount (difference between priceBefore and priceAfter, descending)
+ @Query("SELECT p FROM ProductEntity p ORDER BY (p.priceBefore - p.priceAfter) DESC")
+ List<ProductEntity> findAllOrderByDiscountDesc();
+
+ // Sort products by category and price (ascending)
+ @Query("SELECT p FROM ProductEntity p WHERE p.category.id = :categoryId ORDER BY p.priceAfter ASC")
+ List<ProductEntity> findByCategoryIdOrderByPriceAsc(@Param("categoryId") Long categoryId);
+
+ // Sort products by category and discount (descending)
+ @Query("SELECT p FROM ProductEntity p WHERE p.category.id = :categoryId ORDER BY (p.priceBefore - p.priceAfter) DESC")
+ List<ProductEntity> findByCategoryIdOrderByDiscountDesc(@Param("categoryId") Long categoryId);
+
+
+
+
+
+
+
 }

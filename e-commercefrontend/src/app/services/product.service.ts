@@ -127,4 +127,17 @@ export class ProductService {
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:8080/api/categories');
   }
+
+
+// Get all products with sorting
+getAllProductsSorted(sortBy: string = 'date'): Observable<ProductView[]> {
+  return this.http.get<ProductView[]>(`${this.apiUrl}/sorted?sortBy=${sortBy}`);
+}
+
+// Get products by category with sorting
+getProductsByCategorySorted(categoryId: number, sortBy: string = 'date'): Observable<ProductView[]> {
+  return this.http.get<ProductView[]>(`${this.apiUrl}/category/${categoryId}/sorted?sortBy=${sortBy}`);
+}
+
+
 }
