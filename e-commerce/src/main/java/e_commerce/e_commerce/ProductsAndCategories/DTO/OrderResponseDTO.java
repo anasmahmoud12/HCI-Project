@@ -21,6 +21,7 @@ public class OrderResponseDTO {
     private LocalDateTime createdAt;
     private List<OrderItemResponseDTO> orderItems;
     private UserBasicDTO user;
+private String payment;
 
     @Data
     @AllArgsConstructor

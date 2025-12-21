@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -122,5 +123,33 @@ public class OrderService {
 
         order.setStatus("CANCELLED");
         return orderRepository.save(order);
+    }
+    
+    @Transactional
+    public List<OrderEntity> getAllOrdersAdmin() {
+        return orderRepository.findAllByOrderByCreatedAtDesc();
+    }
+    @Transactional
+    public OrderEntity updateOrderStatus(Long orderId, String status) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        // Validate status
+        validateOrderStatus(status);
+
+        // Update status
+        order.setStatus(status);
+
+        return orderRepository.save(order);
+    }
+
+    private void validateOrderStatus(String status) {
+        List<String> validStatuses = Arrays.asList(
+                "PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED"
+        );
+
+        if (!validStatuses.contains(status.toUpperCase())) {
+            throw new RuntimeException("Invalid order status: " + status);
+        }
     }
 }

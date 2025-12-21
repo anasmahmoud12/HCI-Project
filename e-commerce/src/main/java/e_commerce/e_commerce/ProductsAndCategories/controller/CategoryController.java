@@ -115,4 +115,5 @@ System.out.println("jhsjhjhsdhj");
         CategoryDto category = categoryService.getCategory(id);
         return ResponseEntity.ok(category);
     }
+    
 }

@@ -1,0 +1,216 @@
+  <div class="p-6">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">Orders Management</h2>
+          <p class="text-gray-600">Manage and track all customer orders</p>
+        </div>
+        <button 
+          routerLink="/admin" 
+          class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-500">Total Orders</div>
+          <div class="text-2xl font-bold">{{ orders.length }}</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-500">Pending</div>
+          <div class="text-2xl font-bold text-yellow-600">
+            {{ getOrdersByStatus('PENDING').length }}
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-500">Completed</div>
+          <div class="text-2xl font-bold text-green-600">
+            {{ getOrdersByStatus('COMPLETED').length }}
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-500">Cancelled</div>
+          <div class="text-2xl font-bold text-red-600">
+            {{ getOrdersByStatus('CANCELLED').length }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order #
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Items
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Payment
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let order of orders" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ order.orderNumber }}
+                  </div>
+                  <div class="text-sm text-gray-500">ID: {{ order.id }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ order.user.firstName || 'User' }} {{ order.user.lastName || '' }}
+                  </div>
+                  <div class="text-sm text-gray-500">{{ order.user.email }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ order.createdAt | date:'short' }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ getTotalItems(order) }} items
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-semibold text-gray-900">
+                    ${{ order.totalPrice | number:'1.2-2' }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="getStatusBadgeClass(order.status)" 
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                    {{ order.status }}
+                  </span>
+                  <select 
+                    *ngIf="order.status !== 'COMPLETED' && order.status !== 'CANCELLED'"
+                    [value]="order.status"
+                    (change)="updateOrderStatus(order.id, $event)"
+                    class="ml-2 text-sm border rounded px-2 py-1"
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancel</option>
+                  </select>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ order.payment }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button 
+                    (click)="viewOrderDetails(order)"
+                    class="text-blue-600 hover:text-blue-900 mr-3"
+                  >
+                    View
+                  </button>
+                  <button 
+                    (click)="deleteOrder(order.id)"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Empty State -->
+        <div *ngIf="orders.length === 0" class="text-center py-12">
+          <div class="text-gray-400 mb-4">
+            <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+          <p class="text-gray-500">When customers place orders, they'll appear here.</p>
+        </div>
+      </div>
+
+      <!-- Order Details Modal -->
+      <div *ngIf="selectedOrder" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <!-- Modal Header -->
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Order Details: {{ selectedOrder.orderNumber }}</h3>
+            <button (click)="selectedOrder = null" class="text-gray-500 hover:text-gray-700">
+              ✕
+            </button>
+          </div>
+          
+          <!-- Order Info -->
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <h4 class="font-semibold text-gray-700">Customer Information</h4>
+              <p class="text-sm">{{ selectedOrder.user.firstName }} </p>
+              <p class="text-sm text-gray-600">{{ selectedOrder.user.email }}</p>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-700">Shipping Address</h4>
+            
+            </div>
+          </div>
+
+          <!-- Order Items -->
+          <div class="mb-6">
+            <h4 class="font-semibold text-gray-700 mb-2">Order Items</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div *ngFor="let item of selectedOrder.orderItems" class="flex items-center justify-between py-2 border-b last:border-b-0">
+                <div class="flex items-center">
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                    <div class="text-sm text-gray-500">
+                      Quantity: {{ item.quantity }} 
+                 
+                    </div>
+                  </div>
+                </div>
+                <div class="text-sm font-semibold">
+                  ${{ item.totalPrice | number:'1.2-2' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="flex justify-between items-center border-t pt-4">
+            <div>
+              <div class="text-sm text-gray-600">Order Total</div>
+              <div class="text-2xl font-bold">${{ selectedOrder.totalPrice | number:'1.2-2' }}</div>
+            </div>
+            <button 
+              (click)="selectedOrder = null"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

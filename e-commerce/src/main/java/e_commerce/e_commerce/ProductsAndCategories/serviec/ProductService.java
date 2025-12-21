@@ -249,6 +249,7 @@ public ProductDto updateProductWithImages(
                 .priceAfter(priceAfter)
                 .stock_quantity(stockQuantity)
                 .categoryId(categoryId)
+                .created_At(LocalDateTime.now())
                 .build();
 
 

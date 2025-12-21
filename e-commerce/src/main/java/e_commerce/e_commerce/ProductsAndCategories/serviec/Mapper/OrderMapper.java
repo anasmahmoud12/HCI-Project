@@ -25,6 +25,7 @@ public class OrderMapper {
                 .totalPrice(orderDto.getTotalPriceOfOrder())
                 .createdAt(LocalDateTime.now())
                 .orderNumber(generateOrderNumber())
+                .payment(orderDto.getPayment())
                 .build();
     }
 
@@ -67,6 +68,7 @@ public class OrderMapper {
                 .createdAt(order.getCreatedAt())
                 .orderItems(mapOrderItems(order.getOrderItems()))
                 .user(mapUser(order.getUser()))
+                .payment(order.getPayment())
                 .build();
     }
 

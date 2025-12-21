@@ -24,4 +24,6 @@ public class CategoryDto {
     private LocalDateTime created_At;
     private LocalDateTime Update_At;
     private List<ProductDto> products;
+        private Integer productCount;
+
 }

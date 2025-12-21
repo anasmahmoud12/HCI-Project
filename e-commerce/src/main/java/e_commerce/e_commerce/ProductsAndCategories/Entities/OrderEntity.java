@@ -49,6 +49,7 @@ public class OrderEntity {
 //    private Address shippingAddress;
 
     private LocalDateTime createdAt;
+   private String payment;
 
     //  gom3a is leaving this for now . 3shan el orderItem
 

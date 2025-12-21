@@ -30,7 +30,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'home', component: HomeComponent },
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  // { path: '', redirectTo: '/login', pathMatch: 'full' },
   {path:'cart',component:CartComponent},
   // {path:'orders',component:}
   {path:'products',component:ProductsComponent},
@@ -43,4 +43,17 @@ export const routes: Routes = [
     path: 'categories',
     component: CategoriesComponent
   },
+  {
+    path: 'admin',
+    loadComponent: () => import('./components/admin-components/admin.component').then(m => m.AdminComponent),
+    children: [
+      { path: '', loadComponent: () => import('./components/admin-components/dashboard').then(m => m.Dashboard) },
+      { path: 'products', loadComponent: () => import('./components/admin-components/admin-products-component/products').then(m => m.Products) },
+      { path: 'categories', loadComponent: () => import('./components/admin-components/admin-categories-component/categories').then(m => m.Categories) },
+      { path: 'orders', loadComponent: () => import('./components/admin-components/admin-orders-component/orders').then(m => m.Orders) },
+      { path: 'admins', loadComponent: () => import('./components/admin-components/admin-admins-component/admins').then(m => m.Admins) },
+    ]
+  },
+    { path: '', redirectTo: '/login', pathMatch: 'full' }
+
 ];

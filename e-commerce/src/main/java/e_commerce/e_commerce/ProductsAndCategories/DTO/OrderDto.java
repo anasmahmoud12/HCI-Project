@@ -10,6 +10,7 @@ public class OrderDto {
     private String status; // when taken from frontend it by default pending
     private List<OrderItemRequest> items = new ArrayList<>(); // Initialize the list
     private double totalPriceOfOrder;
+private String payment ;
 
     @Data
     public static class OrderItemRequest {
@@ -17,5 +18,7 @@ public class OrderDto {
         private Integer quantity;
         private double priceOfOne;
         private double totalPrice;
+                private String payment ;
+
     }
 }

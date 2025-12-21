@@ -17,7 +17,7 @@ public class Product_imagesEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Long id;
     @Lob
-    @Column(name = "img", columnDefinition = "BYTEA") // Use BYTEA for PostgreSQL
+    @Column(name = "img") 
 
     private byte[]img;
     private Boolean is_primary;

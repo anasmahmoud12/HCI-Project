@@ -1,0 +1,315 @@
+<div class="products-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Products</h1>
+      <p class="page-subtitle">Manage your product catalog</p>
+    </div>
+    <div class="header-actions">
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button 
+          class="toggle-btn" 
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          title="Grid View"
+        >
+          <span class="toggle-icon">⏹️</span>
+          <span class="toggle-text">Grid</span>
+        </button>
+        <button 
+          class="toggle-btn" 
+          [class.active]="viewMode === 'table'"
+          (click)="setViewMode('table')"
+          title="Table View"
+        >
+          <span class="toggle-icon">📋</span>
+          <span class="toggle-text">Table</span>
+        </button>
+      </div>
+      
+      <button class="btn-primary" (click)="showAddModal = true">
+        <span class="btn-icon">+</span> Add Product
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-number">{{ products.length }}</span>
+      <span class="stat-label">Total Products</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ lowStockCount }}</span>
+      <span class="stat-label">Low Stock</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ activeProductsCount }}</span>
+      <span class="stat-label">In Stock</span>
+    </div>
+  </div>
+
+  <!-- Search and Filter -->
+  <div class="search-filter-bar">
+    <div class="search-input">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery"
+        (input)="filterProducts()"
+        placeholder="Search products..."
+        class="search-field">
+    </div>
+    
+    <div class="filter-buttons">
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'all'"
+        (click)="setFilter('all')">
+        All
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'inStock'"
+        (click)="setFilter('inStock')">
+        In Stock
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filterStatus === 'lowStock'"
+        (click)="setFilter('lowStock')">
+        Low Stock
+      </button>
+    </div>
+  </div>
+
+  <!-- Products Grid View -->
+  <div *ngIf="viewMode === 'grid'" class="products-grid">
+    <div *ngFor="let product of sortedProducts" class="product-card">
+      
+      <!-- Card Header with Images -->
+      <div class="card-header">
+        <div class="product-images">
+          <div class="image-carousel">
+            <img 
+              [src]="getPrimaryImage(product)" 
+              (error)="onImageError($event)"
+              class="main-image"
+              [alt]="product.name">
+            
+            <!-- Image Count Badge -->
+            <div *ngIf="product.productImages && product.productImages.length > 1" class="image-count">
+              +{{ product.productImages.length - 1 }}
+            </div>
+          </div>
+          
+          <!-- Stock Status -->
+          <div [class]="getStockStatusClass(product)" class="stock-badge">
+            {{ getStockStatus(product) }}
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="product-actions">
+            <button class="action-btn edit-btn" (click)="openEditModal(product)" title="Edit">
+              ✏️
+            </button>
+            <button class="action-btn delete-btn" (click)="deleteProduct(product)" title="Delete">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card Body -->
+      <div class="card-body">
+        <div class="product-header">
+          <h3 class="product-name">{{ product.name }}</h3>
+          <div class="price-section">
+            <span class="current-price">${{ product.priceAfter.toFixed(2) }}</span>
+            <span *ngIf="product.priceBefore > product.priceAfter" class="original-price">
+              ${{ product.priceBefore.toFixed(2) }}
+            </span>
+            <span *ngIf="product.priceBefore > product.priceAfter" class="discount-badge">
+              {{ getDiscountPercentage(product) }}% OFF
+            </span>
+          </div>
+        </div>
+        
+        <p class="product-description">{{ product.description | truncate:100 }}</p>
+        
+        <div class="product-meta">
+          <span class="meta-item">
+            <span class="meta-icon">📦</span>
+            <span class="meta-text">{{ product.stock_quantity }} in stock</span>
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">🏷️</span>
+            <span class="meta-text">{{ getCategoryName(product) }}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <button class="btn-view" (click)="viewProductDetails(product)">
+          <span class="btn-icon">👁️</span> View Details
+        </button>
+        <button class="btn-edit" (click)="openEditModal(product)">
+          <span class="btn-icon">✏️</span> Edit
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State for Grid -->
+    <div *ngIf="!isLoading && sortedProducts.length === 0 && viewMode === 'grid'" class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h3>No products found</h3>
+      <p *ngIf="searchQuery || filterStatus !== 'all'">
+        Try adjusting your search or filter
+      </p>
+      <p *ngIf="!searchQuery && filterStatus === 'all'">
+        Get started by adding your first product
+      </p>
+      <button class="btn-primary" (click)="showAddModal = true">
+        <span class="btn-icon">+</span> Add First Product
+      </button>
+    </div>
+  </div>
+
+  <!-- Products Table View -->
+  <div *ngIf="viewMode === 'table'" class="products-table-container">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th (click)="sortTable('name')" class="sortable">
+            Name
+            <span class="sort-icon" *ngIf="sortColumn === 'name'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th (click)="sortTable('category')" class="sortable">
+            Category
+            <span class="sort-icon" *ngIf="sortColumn === 'category'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th (click)="sortTable('priceAfter')" class="sortable">
+            Price
+            <span class="sort-icon" *ngIf="sortColumn === 'priceAfter'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th (click)="sortTable('stock_quantity')" class="sortable">
+            Stock
+            <span class="sort-icon" *ngIf="sortColumn === 'stock_quantity'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th>Status</th>
+          <th>Discount</th>
+          <th>Images</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of sortedProducts">
+          <td class="image-cell">
+            <img 
+              [src]="getPrimaryImage(product)" 
+              (error)="onImageError($event)"
+              class="table-image"
+              [alt]="product.name">
+          </td>
+          <td class="name-cell">
+            <strong>{{ product.name }}</strong>
+            <div class="product-description-sm">
+              {{ product.description | truncate:40 }}
+            </div>
+          </td>
+          <td class="category-cell">
+            <span class="category-badge">{{ getCategoryName(product) }}</span>
+          </td>
+          <td class="price-cell">
+            <div class="current-price">${{ product.priceAfter.toFixed(2) }}</div>
+            <div *ngIf="product.priceBefore > product.priceAfter" class="original-price-sm">
+              ${{ product.priceBefore.toFixed(2) }}
+            </div>
+          </td>
+          <td class="stock-cell">
+            <div class="stock-quantity">{{ product.stock_quantity }}</div>
+          </td>
+          <td class="status-cell">
+            <span [class]="getStockStatusClass(product) + ' status-badge'">
+              {{ getStockStatus(product) }}
+            </span>
+          </td>
+          <td class="discount-cell">
+            <span *ngIf="product.priceBefore > product.priceAfter" class="discount-badge-sm">
+              {{ getDiscountPercentage(product) }}% OFF
+            </span>
+            <span *ngIf="product.priceBefore <= product.priceAfter" class="no-discount">
+              -
+            </span>
+          </td>
+          <td class="images-cell">
+            <div class="images-count">
+              <span class="images-icon">🖼️</span>
+              <span>{{ product.productImages?.length || 0 }}</span>
+            </div>
+          </td>
+          <td class="actions-cell">
+            <div class="table-actions">
+              <button class="action-btn view-btn" (click)="viewProductDetails(product)" title="View">
+                👁️
+              </button>
+              <button class="action-btn edit-btn" (click)="openEditModal(product)" title="Edit">
+                ✏️
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteProduct(product)" title="Delete">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State for Table -->
+    <div *ngIf="!isLoading && sortedProducts.length === 0 && viewMode === 'table'" class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h3>No products found</h3>
+      <p *ngIf="searchQuery || filterStatus !== 'all'">
+        Try adjusting your search or filter
+      </p>
+      <p *ngIf="!searchQuery && filterStatus === 'all'">
+        Get started by adding your first product
+      </p>
+      <button class="btn-primary" (click)="showAddModal = true">
+        <span class="btn-icon">+</span> Add First Product
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading products...</p>
+  </div>
+
+  <!-- Add Product Modal -->
+  <app-add-product-modal
+    *ngIf="showAddModal"
+    (productAdded)="onProductAdded()"
+    (modalClosed)="showAddModal = false">
+  </app-add-product-modal>
+
+  <!-- Edit Product Modal -->
+  <app-edit-product-modal
+    *ngIf="showEditModal && selectedProduct"
+    [product]="selectedProduct"
+    (productUpdated)="onProductUpdated()"
+    (modalClosed)="closeEditModal()">
+  </app-edit-product-modal>
+</div>

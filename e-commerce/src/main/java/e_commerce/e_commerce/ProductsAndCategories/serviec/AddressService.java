@@ -28,7 +28,7 @@ public class AddressService {
         address.setStreet(dto.getStreetAddress());
         address.setCity(dto.getCity());
         address.setCountry(dto.getCountry());
-        address.setPostalCode(dto.getPostalCode());
+        // address.setPostalCode(dto.getPostalCode());
         address.setIsDefault(dto.isDefault());
 
         // then link the user with them

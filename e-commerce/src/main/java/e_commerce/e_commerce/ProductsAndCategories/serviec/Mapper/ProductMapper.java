@@ -1,9 +1,15 @@
 package e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper;
 
 import e_commerce.e_commerce.ProductsAndCategories.DTO.ProductDto;
+import e_commerce.e_commerce.ProductsAndCategories.DTO.productImageDto;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.CategoryEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.ProductEntity;
+import e_commerce.e_commerce.ProductsAndCategories.Entities.Product_imagesEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.CategoryRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +17,9 @@ import org.springframework.stereotype.Service;
 public class ProductMapper {
     @Autowired
     CategoryRepository categoryRepository;
+      @Autowired
+    ProductImageMapper productImageMapper;
+
     public ProductEntity convertToEntity(ProductDto dto) {
 
 //        CategoryEntity categoryEntity =categoryRepository.findById(dto.getId()).orElse(null);
@@ -36,6 +45,13 @@ public class ProductMapper {
         if (entity.getCategory() != null) {
             categoryId = entity.getCategory().getId();
         }
+                List<productImageDto> productImageDtos = new ArrayList<>();
+        if (entity.getProductImages() != null && !entity.getProductImages().isEmpty()) {
+            System.out.println("...");
+            for (Product_imagesEntity imageEntity : entity.getProductImages()) {
+                productImageDtos.add(productImageMapper.convertToDto(imageEntity));
+            }
+        }
         return  ProductDto.builder()
                 .id(entity.getId())
                 .name(entity.getName())
@@ -46,6 +62,7 @@ public class ProductMapper {
                 .priceAfter(entity.getPriceAfter())
                 .stock_quantity(entity.getStock_quantity())
                 .categoryId(categoryId)
+                .productImages(productImageDtos)
                 .build();
 
     }

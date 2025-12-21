@@ -104,6 +104,11 @@ public class CategoryService {
         List<CategoryDto> categoryDtos = new ArrayList<CategoryDto>();
         for (CategoryEntity c : categoryEntities) {
             CategoryDto dto = categoryMapper.convertToDto(c);
+             if (c.getProducts() != null) {
+                dto.setProductCount(c.getProducts().size());
+            } else {
+                dto.setProductCount(0);
+            }
             categoryDtos.add(dto);
         }
         return categoryDtos;

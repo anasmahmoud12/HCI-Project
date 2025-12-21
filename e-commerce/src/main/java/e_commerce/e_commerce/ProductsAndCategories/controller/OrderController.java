@@ -65,6 +65,19 @@ public class OrderController {
         }
     }
 
+       @GetMapping
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getAllOrdersAdmin() {
+        try {
+            List<OrderEntity> orders = orderService.getAllOrdersAdmin();
+            List<OrderResponseDTO> orderDtos = orders.stream()
+                    .map(OrderMapper::toResponseDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(orderDtos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
     // Cancel an order
     @PutMapping("/{orderId}/cancel/user/{userId}")
     public ResponseEntity<?> cancelOrder(
