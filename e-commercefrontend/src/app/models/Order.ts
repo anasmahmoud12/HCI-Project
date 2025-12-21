@@ -1,5 +1,7 @@
 // models/Order.ts
 
+import { ProductView } from "./product.model";
+
 // ========== REQUEST MODELS (for placing orders) ==========
 export interface OrderDto {
   status?: string; // Optional - backend will set default to PENDING
@@ -31,6 +33,8 @@ export interface OrderItemResponse {
   price: number;
   totalPrice: number;
   product: ProductBasicInfo;
+
+
 }
 
 export interface ProductBasicInfo {
@@ -39,6 +43,7 @@ export interface ProductBasicInfo {
   description: string;
   priceBefore: number;
   priceAfter: number;
+  brand:string
 }
 
 export interface UserBasicInfo {

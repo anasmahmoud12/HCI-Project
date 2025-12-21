@@ -95,6 +95,7 @@ public ProductDto updateProductWithImages(
         // Update basic product fields
         existingProduct.setName(name);
         existingProduct.setDescription(description);
+//        existingProduct.setBrand(brand);
         existingProduct.setPriceBefore(priceBefore);
         existingProduct.setPriceAfter(priceAfter);
         existingProduct.setStock_quantity(stockQuantity);
@@ -250,6 +251,7 @@ public ProductDto updateProductWithImages(
                 .stock_quantity(stockQuantity)
                 .categoryId(categoryId)
                 .created_At(LocalDateTime.now())
+//                .brand(brand)
                 .build();
 
 

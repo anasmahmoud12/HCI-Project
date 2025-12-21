@@ -85,6 +85,8 @@ public class ProductController {
             @PathVariable Long id,
             @RequestParam("name") String name,
             @RequestParam("description") String description,
+//            @RequestParam("brand") String brand,
+
             @RequestParam("priceBefore") Double priceBefore,
             @RequestParam("priceAfter") Double priceAfter,
             @RequestParam("stock_quantity") Integer stockQuantity,
@@ -191,12 +193,13 @@ public class ProductController {
             @RequestParam("priceAfter") Double priceAfter,
             @RequestParam("stock_quantity") Integer stockQuantity,
             @RequestParam("categoryId") Long categoryId,
+//            @RequestParam("brand") String brand,
             @RequestParam(value = "primaryImageIndex", defaultValue = "0") Integer primaryImageIndex,
             @RequestParam("images") MultipartFile[] images) {
 
         try {
             ProductDto createdProduct = productService.addProductWithImages(
-                    name, description, priceBefore, priceAfter, stockQuantity,
+                    name, description,priceBefore, priceAfter, stockQuantity,
                     categoryId, primaryImageIndex, images
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
