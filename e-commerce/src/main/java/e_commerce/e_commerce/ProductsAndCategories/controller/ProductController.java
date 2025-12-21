@@ -254,7 +254,41 @@ public class ProductController {
     }
 
 
+    @GetMapping("/filter")
+    public ResponseEntity<List<ProductDto>> filterProducts(
+            @RequestParam(value = "productName", required = false) String productName,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "minPrice", required = false) Double minPrice,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(value = "minDiscount", required = false) Double minDiscount,
+            @RequestParam(value = "maxDiscount", required = false) Double maxDiscount,
+            @RequestParam(value = "includeOutOfStock", defaultValue = "true") Boolean includeOutOfStock) {
 
+        List<ProductDto> products = productService.filterProducts(
+                productName, description, minPrice, maxPrice,
+                minDiscount, maxDiscount, includeOutOfStock
+        );
+        return ResponseEntity.ok(products);
+    }
+
+    // Filter products by category
+    @GetMapping("/category/{categoryId}/filter")
+    public ResponseEntity<List<ProductDto>> filterProductsByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(value = "productName", required = false) String productName,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "minPrice", required = false) Double minPrice,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(value = "minDiscount", required = false) Double minDiscount,
+            @RequestParam(value = "maxDiscount", required = false) Double maxDiscount,
+            @RequestParam(value = "includeOutOfStock", defaultValue = "true") Boolean includeOutOfStock) {
+
+        List<ProductDto> products = productService.filterProductsByCategory(
+                categoryId, productName, description, minPrice, maxPrice,
+                minDiscount, maxDiscount, includeOutOfStock
+        );
+        return ResponseEntity.ok(products);
+    }
 
 
 }

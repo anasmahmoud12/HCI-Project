@@ -11,17 +11,14 @@ export class ProductService {
 
   constructor(private http: HttpClient) {}
 
-  // Get all products
   getProducts(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
   }
 
-  // Get single product by ID
   getProduct(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
-  // Create product with images
   createProductWithImages(productData: any): Observable<any> {
     const formData = new FormData();
     
@@ -40,11 +37,9 @@ export class ProductService {
     return this.http.post(`${this.apiUrl}/with-images`, formData);
   }
 
-  // Update product with images - FIXED VERSION
   updateProductWithImages(id: number, productData: any): Observable<any> {
     const formData = new FormData();
     
-    // Log the data being sent
     console.log('Product Data to update:', {
       id: id,
       name: productData.name,
@@ -67,17 +62,14 @@ export class ProductService {
     formData.append('categoryId', productData.categoryId.toString());
     formData.append('primaryImageIndex', productData.primaryImageIndex.toString());
     
-    // Handle removed image IDs
     if (productData.removedImageIds && productData.removedImageIds.length > 0) {
       console.log('Removing image IDs:', productData.removedImageIds);
       formData.append('removedImageIds', JSON.stringify(productData.removedImageIds));
     } else {
       console.log('No images to remove');
-      // Send empty array if no images to remove
       formData.append('removedImageIds', '[]');
     }
     
-    // Handle new images - only append if there are new images
     if (productData.images && productData.images.length > 0) {
       console.log('Adding new images:', productData.images.length);
       productData.images.forEach((file: File, index: number) => {
@@ -86,11 +78,9 @@ export class ProductService {
       });
     } else {
       console.log('No new images to add');
-      // Send empty array to backend
       formData.append('images', new Blob(), '');
     }
     
-    // Log form data entries
     console.log('FormData entries:');
     for (let pair of (formData as any).entries()) {
       console.log(pair[0], pair[1]);
@@ -99,45 +89,94 @@ export class ProductService {
     return this.http.put(`${this.apiUrl}/${id}/with-images`, formData);
   }
 
-  // Delete product
   deleteProduct(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
-  // // Delete product image
-  // deleteProductImage(imageId: number): Observable<any> {
-  //   return this.http.delete(`${this.apiUrl}/images/${imageId}`);
-  // }
-
   getAllProducts(): Observable<ProductView[]> {
-    console.log('try to get ');
+    console.log('Fetching all products');
     return this.http.get<ProductView[]>(this.apiUrl);
   }
 
   getProductById(id: number): Observable<ProductView> {
-        console.log('try to get ');
-
+    console.log('Fetching product by ID:', id);
     return this.http.get<ProductView>(`${this.apiUrl}/${id}`);
   }
 
   getProductsByCategory(categoryId: number): Observable<ProductView[]> {
+    console.log('Fetching products by category:', categoryId);
     return this.http.get<ProductView[]>(`${this.apiUrl}/category/${categoryId}`);
+  }
+
+  // SORTING METHODS
+  getAllProductsSorted(sortBy: string = 'date'): Observable<ProductView[]> {
+    console.log('Fetching all products sorted by:', sortBy);
+    return this.http.get<ProductView[]>(`${this.apiUrl}/sorted?sortBy=${sortBy}`);
+  }
+
+  getProductsByCategorySorted(categoryId: number, sortBy: string = 'date'): Observable<ProductView[]> {
+    console.log('Fetching products by category:', categoryId, 'sorted by:', sortBy);
+    return this.http.get<ProductView[]>(`${this.apiUrl}/category/${categoryId}/sorted?sortBy=${sortBy}`);
+  }
+
+  // NEW FILTER METHODS
+  filterProducts(filterOptions: any): Observable<ProductView[]> {
+    console.log('Filtering all products with options:', filterOptions);
+    
+    const params: any = {};
+    
+    if (filterOptions.productName && filterOptions.productName.trim() !== '') {
+      params.productName = filterOptions.productName;
+    }
+    if (filterOptions.description && filterOptions.description.trim() !== '') {
+      params.description = filterOptions.description;
+    }
+    if (filterOptions.minPrice !== null && filterOptions.minPrice !== undefined) {
+      params.minPrice = filterOptions.minPrice;
+    }
+    if (filterOptions.maxPrice !== null && filterOptions.maxPrice !== undefined) {
+      params.maxPrice = filterOptions.maxPrice;
+    }
+    if (filterOptions.minDiscount !== null && filterOptions.minDiscount !== undefined) {
+      params.minDiscount = filterOptions.minDiscount;
+    }
+    if (filterOptions.maxDiscount !== null && filterOptions.maxDiscount !== undefined) {
+      params.maxDiscount = filterOptions.maxDiscount;
+    }
+    params.includeOutOfStock = filterOptions.includeOutOfStock;
+    
+    return this.http.get<ProductView[]>(`${this.apiUrl}/filter`, { params });
+  }
+
+  filterProductsByCategory(categoryId: number, filterOptions: any): Observable<ProductView[]> {
+    console.log('Filtering products by category:', categoryId, 'with options:', filterOptions);
+    
+    const params: any = {};
+    
+    if (filterOptions.productName && filterOptions.productName.trim() !== '') {
+      params.productName = filterOptions.productName;
+    }
+    if (filterOptions.description && filterOptions.description.trim() !== '') {
+      params.description = filterOptions.description;
+    }
+    if (filterOptions.minPrice !== null && filterOptions.minPrice !== undefined) {
+      params.minPrice = filterOptions.minPrice;
+    }
+    if (filterOptions.maxPrice !== null && filterOptions.maxPrice !== undefined) {
+      params.maxPrice = filterOptions.maxPrice;
+    }
+    if (filterOptions.minDiscount !== null && filterOptions.minDiscount !== undefined) {
+      params.minDiscount = filterOptions.minDiscount;
+    }
+    if (filterOptions.maxDiscount !== null && filterOptions.maxDiscount !== undefined) {
+      params.maxDiscount = filterOptions.maxDiscount;
+    }
+    params.includeOutOfStock = filterOptions.includeOutOfStock;
+    
+    return this.http.get<ProductView[]>(`${this.apiUrl}/category/${categoryId}/filter`, { params });
   }
 
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:8080/api/categories');
   }
-
-
-// Get all products with sorting
-getAllProductsSorted(sortBy: string = 'date'): Observable<ProductView[]> {
-  return this.http.get<ProductView[]>(`${this.apiUrl}/sorted?sortBy=${sortBy}`);
-}
-
-// Get products by category with sorting
-getProductsByCategorySorted(categoryId: number, sortBy: string = 'date'): Observable<ProductView[]> {
-  return this.http.get<ProductView[]>(`${this.apiUrl}/category/${categoryId}/sorted?sortBy=${sortBy}`);
-}
-
-
 }

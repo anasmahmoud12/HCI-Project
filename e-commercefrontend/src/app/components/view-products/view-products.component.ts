@@ -180,7 +180,30 @@ export class ProductsComponent implements OnInit, OnDestroy {
   applyFilters() {
     console.log('Filters to be applied:', this.filterOptions);
     this.closeFilterModal();
-    alert('Filter functionality will be implemented in the backend soon!');
+    this.loading = true;
+    this.error = '';
+
+    const request = this.categoryId === 0
+      ? this.productService.filterProducts(this.filterOptions)
+      : this.productService.filterProductsByCategory(this.categoryId, this.filterOptions);
+
+    request.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: ProductView[]) => {
+        console.log('Filter results:', data);
+        this.products = data || [];
+        this.allProducts = this.products;
+        this.loading = false;
+
+        if (this.products.length === 0) {
+          this.error = 'No products found matching your filters';
+        }
+      },
+      error: (err) => {
+        console.error('Error filtering products:', err);
+        this.error = 'Failed to filter products. Please try again.';
+        this.loading = false;
+      }
+    });
   }
 
   resetFilters() {
