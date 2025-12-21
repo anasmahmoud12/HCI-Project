@@ -1,29 +1,49 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CategoryService } from '../../services/category.service';
 import { CategoryView } from '../../models/category.model';
 import { NavbarComponent } from '../nav-bar/nav-bar.component';
+import { Subject, takeUntil } from 'rxjs';  // Add this
+import { SearchService } from '../../services/SearchService';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule,NavbarComponent],
+  imports: [CommonModule, NavbarComponent],
   templateUrl: './view-category.component.html',
   styleUrls: ['./view-category.component.css']
 })
-export class CategoriesComponent implements OnInit {
+export class CategoriesComponent implements OnInit, OnDestroy {  // Add OnDestroy
   categories: CategoryView[] = [];
+  allCategories: CategoryView[] = [];  // Add this
   loading: boolean = false;
   error: string = '';
+  currentSearchQuery: string = '';  // Add this
+  
+  private destroy$ = new Subject<void>();  // Add this
 
   constructor(
     private categoryService: CategoryService,
+    private searchService: SearchService,  // Add this
     private router: Router
   ) {}
 
   ngOnInit() {
     this.loadCategories();
+    
+    // Subscribe to search queries from navbar
+    this.searchService.searchQuery$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(query => {
+        this.currentSearchQuery = query;
+        this.performSearch(query);
+      });
+  }
+
+  ngOnDestroy() {  // Add this method
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadCategories() {
@@ -33,10 +53,9 @@ export class CategoriesComponent implements OnInit {
     this.categoryService.getCategories().subscribe({
       next: (data: CategoryView[]) => {
         console.log('Categories received:', data);
-        // Filter only active categories
+        this.allCategories = data;  // Store all categories
         this.categories = data;
-        // console.log('Filtered categories:', this.categories);
-        this.loading = false; // THIS IS CRITICAL!
+        this.loading = false;
       },
       error: (err) => {
         console.error('Error loading categories:', err);
@@ -45,9 +64,40 @@ export class CategoriesComponent implements OnInit {
       },
       complete: () => {
         console.log('Categories loading complete');
-        this.loading = false; // Fallback to ensure loading stops
+        this.loading = false;
       }
     });
+  }
+
+  // Add this new method
+  performSearch(query: string) {
+    if (!query || query.trim() === '') {
+      // If search is empty, show all categories
+      this.categories = this.allCategories;
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    this.searchService.searchCategories(query)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data: CategoryView[]) => {
+          console.log('Search results:', data);
+          this.categories = data || [];
+          this.loading = false;
+          
+          if (this.categories.length === 0) {
+            this.error = `No categories found for "${query}"`;
+          }
+        },
+        error: (err) => {
+          console.error('Error searching categories:', err);
+          this.error = 'Failed to search categories';
+          this.loading = false;
+        }
+      });
   }
 
   getCategoryImage(category: CategoryView): string {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import e_commerce.e_commerce.ProductsAndCategories.DTO.ProductDto;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.ProductService;
+import e_commerce.e_commerce.ProductsAndCategories.serviec.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +19,8 @@ import java.util.List;
 @RequestMapping("/api/products")
 @CrossOrigin("*")
 public class ProductController {
+    @Autowired
+    private SearchService searchService;
 
     @Autowired
     private ProductService productService;
@@ -207,5 +210,37 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+
+
+
+    /**
+     * Search all products
+     * GET /api/products/search?q=laptop
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDto>> searchProducts(
+            @RequestParam(value = "q", required = false) String query) {
+        List<ProductDto> products = searchService.searchAllProducts(query);
+        return ResponseEntity.ok(products);
+    }
+
+    /**
+     * Search products within a specific category
+     * GET /api/products/search/category/5?q=laptop
+     */
+    @GetMapping("/search/category/{categoryId}")
+    public ResponseEntity<List<ProductDto>> searchProductsByCategory(
+            @RequestParam(value = "q", required = false) String query,
+            @PathVariable Long categoryId) {
+        List<ProductDto> products = searchService.searchProductsByCategory(query, categoryId);
+        return ResponseEntity.ok(products);
+    }
+
+
+
+
+
+
 
 }

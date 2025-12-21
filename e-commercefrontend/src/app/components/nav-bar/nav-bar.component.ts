@@ -1,14 +1,15 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';  // ← Import from @angular/common
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { CartService } from '../../services/cart.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, filter } from 'rxjs';
+import { SearchService } from '../../services/SearchService';
 
 @Component({
   selector: 'app-navbar',
-  standalone: true,  // ← Add this
-  imports: [CommonModule, FormsModule],  // ← Now it's correct
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
 })
@@ -18,11 +19,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   
   searchQuery: string = '';
   cartItemCount: number = 0;
+  currentRoute: string = '';
   
   private destroy$ = new Subject<void>();
 
   constructor(
     private cartService: CartService,
+    private searchService: SearchService, 
     private router: Router
   ) {}
 
@@ -32,6 +35,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .subscribe(cart => {
         this.cartItemCount = cart.totalItems;
       });
+
+    // Track current route
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((event: any) => {
+        this.currentRoute = event.urlAfterRedirects;
+      });
   }
 
   ngOnDestroy() {
@@ -40,7 +53,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   onSearch() {
-    console.log('Search query:', this.searchQuery);
+    const query = this.searchQuery.trim();
+    console.log('Search query:', query);
+    console.log('Current route:', this.currentRoute);
+    
+    // Emit search query to subscribers (the current page will handle it)
+    this.searchService.emitSearchQuery(query);
   }
 
   goToCart() {
@@ -55,33 +73,23 @@ export class NavbarComponent implements OnInit, OnDestroy {
     console.log('Navigate to profile');
   }
 
- navetohome(){
-      this.router.navigate(['/home']);
+  navetohome() {
+    this.searchQuery = ''; // Clear search when navigating
+    this.router.navigate(['/home']);
+  }
 
- }
- navtocategories(){
-        this.router.navigate(['/categories']);
+  navtocategories() {
+    this.searchQuery = ''; // Clear search when navigating
+    this.router.navigate(['/categories']);
+  }
 
- }
-navtoproducts() {
-          this.router.navigate(['/products']);
+  navtoproducts() {
+    this.searchQuery = ''; // Clear search when navigating
+    this.router.navigate(['/products']);
+  }
 
-}
-
-navtoorders(){
-            this.router.navigate(['/orders']);
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
+  navtoorders() {
+    this.searchQuery = ''; // Clear search when navigating
+    this.router.navigate(['/orders']);
+  }
 }

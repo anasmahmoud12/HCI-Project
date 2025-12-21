@@ -7,6 +7,7 @@ import { CartService } from "../../services/cart.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { NavbarComponent } from "../nav-bar/nav-bar.component";
+import { SearchService } from "../../services/SearchService";
 
 @Component({
   selector: 'app-products',
@@ -19,13 +20,16 @@ export class ProductsComponent implements OnInit, OnDestroy {
   categoryId: number = 0;
   
   products: ProductView[] = [];
+  allProducts: ProductView[] = [];  // Add this to store all products
   loading: boolean = false;
   error: string = '';
+  currentSearchQuery: string = '';  // Add this
   
   private destroy$ = new Subject<void>();
 
   constructor(
     private productService: ProductService,
+    private searchService: SearchService,  // Add this
     private cartService: CartService,
     private route: ActivatedRoute,
     private router: Router
@@ -35,8 +39,17 @@ export class ProductsComponent implements OnInit, OnDestroy {
     // Listen to route parameter changes
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.categoryId = params['categoryId'] ? +params['categoryId'] : 0;
+      this.currentSearchQuery = '';  // Reset search when route changes
       this.loadProducts();
     });
+
+    // Subscribe to search queries from navbar
+    this.searchService.searchQuery$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(query => {
+        this.currentSearchQuery = query;
+        this.performSearch(query);
+      });
   }
 
   ngOnDestroy() {
@@ -56,12 +69,47 @@ export class ProductsComponent implements OnInit, OnDestroy {
     request.pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: any) => {
         console.log('Products received:', data);
-        this.products = data || [];
+        this.allProducts = data || [];  // Store all products
+        this.products = this.allProducts;
         this.loading = false;
       },
       error: (err) => {
         console.error('Error loading products:', err);
         this.error = 'Failed to load products. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  // Add this new method
+  performSearch(query: string) {
+    if (!query || query.trim() === '') {
+      // If search is empty, show all products
+      this.products = this.allProducts;
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    // Determine which search endpoint to use based on categoryId
+    const searchRequest = this.categoryId === 0
+      ? this.searchService.searchProducts(query)
+      : this.searchService.searchProductsByCategory(query, this.categoryId);
+
+    searchRequest.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: ProductView[]) => {
+        console.log('Search results:', data);
+        this.products = data || [];
+        this.loading = false;
+        
+        if (this.products.length === 0) {
+          this.error = `No products found for "${query}"`;
+        }
+      },
+      error: (err) => {
+        console.error('Error searching products:', err);
+        this.error = 'Failed to search products. Please try again later.';
         this.loading = false;
       }
     });
@@ -124,7 +172,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   getDiscountPercentage(product: ProductView): number {
     if (product.priceBefore && product.priceBefore > product.priceAfter) {
-      return Math.round(((product.priceBefore - product.priceAfter) / product.priceAfter) * 100);
+      return Math.round(((product.priceBefore - product.priceAfter) / product.priceBefore) * 100);
     }
     return 0;
   }

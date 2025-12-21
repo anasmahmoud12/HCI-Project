@@ -4,6 +4,7 @@
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/DTO/OrderDto.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/DTO/OrderResponseDTO.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/DTO/ProductDto.java
+/home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/DTO/SearchResultDto.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/DTO/productImageDto.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/Entities/CategoryEntity.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/Entities/OrderEntity.java
@@ -28,6 +29,7 @@
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/serviec/OrderService.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/serviec/ProductImageService.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/serviec/ProductService.java
+/home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/ProductsAndCategories/serviec/SearchService.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/config/SecurityConfig.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/utils/AuthController/AdressController.java
 /home/anas/p/HCI-Project/e-commerce/src/main/java/e_commerce/e_commerce/utils/AuthController/AuthController.java
