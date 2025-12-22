@@ -290,5 +290,14 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    
+    @GetMapping("/top-discounts")
+    public ResponseEntity<List<ProductDto>> getTopDiscountedProducts(
+            @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        List<ProductDto> products = productService.getTopDiscountedProducts(limit);
+        return ResponseEntity.ok(products);
+    }
+
+
 
 }
