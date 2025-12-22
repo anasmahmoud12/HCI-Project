@@ -57,7 +57,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private searchService: SearchService,
     private cartService: CartService,
     private route: ActivatedRoute,
-    private router: Routerو
+    private router: Router,
     private wishlistService: WishlistService
   ) {}
 

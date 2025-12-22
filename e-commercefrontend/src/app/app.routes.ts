@@ -25,6 +25,7 @@ import { ProductsComponent } from './components/view-products/view-products.comp
 import { OrderHistoryComponent } from './components/orders-component/orders-component';
 import { CategoriesComponent } from './components/view-category/view-category.component';
 import{PaypalPaymentComponent } from './components/admin-components/admin-payment-component - Copy/paypal-payment.component';
+import { WishlistComponent } from './components/wishlist.component/wishlist.component';
 
 // import { OrdersComponent } from './components/orders-component/orders-component';
 

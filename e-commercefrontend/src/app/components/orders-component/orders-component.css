@@ -427,6 +427,7 @@
     font-size: 2rem;
   }
 
+  
   .item-row {
     flex-direction: column;
     text-align: center;
@@ -472,7 +473,7 @@
 
 .modal-items-list::-webkit-scrollbar-thumb:hover {
   background: #764ba2;
-<<<<<<< HEAD
+
 }
 /* Add to your orders-component.css */
 
@@ -618,8 +619,8 @@
   margin: 0.25rem 0;
   color: #555;
 }
-=======
-}.item-image-placeholder {
+
+.item-image-placeholder {
   width: 90px;
   height: 90px;
   display: flex;
@@ -633,4 +634,4 @@
   object-fit: cover;
   border-radius: 8px;
 }
->>>>>>> 948888765744bd76e235e8cf541b2c304caeb7a1
+

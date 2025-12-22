@@ -12,7 +12,7 @@ import { ProductsComponent } from './components/view-products/view-products.comp
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterModule, HomeComponent, ProductsComponent, LoginComponent, CartComponent],
+  imports: [CommonModule, RouterOutlet, RouterModule, HomeComponent, LoginComponent, CartComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })

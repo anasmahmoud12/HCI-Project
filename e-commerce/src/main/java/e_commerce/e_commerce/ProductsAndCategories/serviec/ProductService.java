@@ -11,10 +11,12 @@ import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.CategoryMapper
 import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.ProductMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.ProductImageService;
 
+import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -384,17 +386,17 @@ public ProductDto updateProductWithImages(
         return productDtos;
     }
 
-public List<ProductDto> getTopDiscountedProducts(int limit) {
-    Pageable pageable = PageRequest.of(0, limit);
-    List<ProductEntity> productEntities = productRepository.findTopDiscountedProducts(pageable);
-
-    List<ProductDto> productDtos = new ArrayList<>();
-    for (ProductEntity p : productEntities) {
-        productDtos.add(productMapper.convertToDto(p));
-    }
-    return productDtos;
-}
-
+//public List<ProductDto> getTopDiscountedProducts(int limit) {
+//    Pageable pageable = PageRequest.of(0, limit);
+//    List<ProductEntity> productEntities = productRepository.findTopDiscountedProducts(pageable);
+//
+//    List<ProductDto> productDtos = new ArrayList<>();
+//    for (ProductEntity p : productEntities) {
+//        productDtos.add(productMapper.convertToDto(p));
+//    }
+//    return productDtos;
+//}
+//
 
     
 }
