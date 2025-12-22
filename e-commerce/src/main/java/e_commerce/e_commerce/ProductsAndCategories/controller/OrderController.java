@@ -59,14 +59,11 @@ public class OrderController {
     public ResponseEntity<?> getOrderById(
             @PathVariable Long orderId,
             @PathVariable Long userId) {
-        System.out.println(userId);
-        System.out.println(orderId);
         try {
             OrderEntity order = orderService.getOrderById(orderId, userId);
             OrderResponseDTO orderDto = OrderMapper.toResponseDto(order);
             return ResponseEntity.ok(orderDto);
         } catch (RuntimeException e) {
-            System.out.println("111");
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
