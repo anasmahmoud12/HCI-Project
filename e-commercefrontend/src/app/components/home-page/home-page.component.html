@@ -6,13 +6,15 @@
          [class.active]="i === currentSlide"
          [class.inactive]="i !== currentSlide">
       <img [src]="slide.image" [alt]="slide.title" class="slide-background" />
-      <!-- which in above -->
+      
+      <!-- Navbar with transparent background -->
       <app-navbar [isTransparent]="true"></app-navbar>
       
       <div class="slide-content">
         <div class="slide-text">
           <h1 class="slide-title">{{ slide.title }}</h1>
           <p class="slide-description">{{ slide.description }}</p>
+          <button class="shop-now-btn" (click)="shopNow()">Shop Now</button>
         </div>
       </div>
     </div>
@@ -40,22 +42,181 @@
     </div>
   </section>
 
-  <!-- Products Section -->
-  <section class="products-section">
-    <!-- <app-navbar></app-navbar> -->
-    
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading amazing deals...</p>
+  </div>
+
+  <!-- First Product Row Section -->
+  <section class="products-section" *ngIf="!loading && firstRowProducts.length > 0">
     <div class="products-container">
-      <!-- Filter Buttons -->
-      <div class="filter-buttons">
-        <button class="sort-btn">SORT</button>
-        <button class="filter-btn">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" clip-rule="evenodd" />
+      <!-- Section Header -->
+      <div class="section-header">
+        <h2 class="section-title">🔥 Hot Deals - Limited Time Offers</h2>
+        <p class="section-subtitle">Grab these incredible discounts before they're gone!</p>
+      </div>
+
+      <!-- Products Horizontal Scroll -->
+      <div class="scroll-wrapper">
+        <!-- Left Scroll Button -->
+        <button class="scroll-btn left" (click)="scrollLeft(firstScrollContainer)">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <!-- Products Container -->
+        <div class="products-scroll" #firstScrollContainer>
+          <div *ngFor="let product of firstRowProducts" 
+               class="product-card"
+               (click)="viewProduct(product)">
+            
+            <!-- Discount Badge -->
+            <div class="discount-badge" *ngIf="getDiscountPercentage(product) > 0">
+              -{{ getDiscountPercentage(product) }}%
+            </div>
+
+            <!-- Product Image -->
+            <div class="product-image-container">
+              <img [src]="getPrimaryImage(product)" 
+                   [alt]="product.name" 
+                   class="product-image"
+                   onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80'" />
+            </div>
+
+            <!-- Product Info -->
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+
+              <!-- Price Section -->
+              <div class="price-section">
+                <div class="price-row">
+                  <span class="current-price">${{ product.priceAfter }}</span>
+                  <span class="original-price" *ngIf="product.priceBefore > product.priceAfter">
+                    ${{ product.priceBefore }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Add to Cart Button -->
+              <button class="add-cart-btn" 
+                      (click)="addToCart(product, $event)"
+                      [disabled]="product.stock_quantity <= 0">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Scroll Button -->
+        <button class="scroll-btn right" (click)="scrollRight(firstScrollContainer)">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
+    </div>
+  </section>
 
+  <!-- Full Width Tech Banner 1 -->
+  <section class="tech-banner" *ngIf="!loading">
+    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1920&h=400&fit=crop&q=80" 
+         alt="Technology Banner"
+         class="banner-image" />
+    <div class="banner-overlay">
+      <h2 class="banner-title">Experience Innovation</h2>
+      <p class="banner-subtitle">Cutting-edge technology at unbeatable prices</p>
+    </div>
+  </section>
 
+  <!-- Second Product Row Section -->
+  <section class="products-section" *ngIf="!loading && secondRowProducts.length > 0">
+    <div class="products-container">
+      <!-- Section Header -->
+      <div class="section-header">
+        <h2 class="section-title">💎 Premium Selection - Best Sellers</h2>
+        <p class="section-subtitle">Top-rated products loved by our customers</p>
+      </div>
+
+      <!-- Products Horizontal Scroll -->
+      <div class="scroll-wrapper">
+        <!-- Left Scroll Button -->
+        <button class="scroll-btn left" (click)="scrollLeft(secondScrollContainer)">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <!-- Products Container -->
+        <div class="products-scroll" #secondScrollContainer>
+          <div *ngFor="let product of secondRowProducts" 
+               class="product-card"
+               (click)="viewProduct(product)">
+            
+            <!-- Discount Badge -->
+            <div class="discount-badge" *ngIf="getDiscountPercentage(product) > 0">
+              -{{ getDiscountPercentage(product) }}%
+            </div>
+
+            <!-- Product Image -->
+            <div class="product-image-container">
+              <img [src]="getPrimaryImage(product)" 
+                   [alt]="product.name" 
+                   class="product-image"
+                   onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80'" />
+            </div>
+
+            <!-- Product Info -->
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+
+              <!-- Price Section -->
+              <div class="price-section">
+                <div class="price-row">
+                  <span class="current-price">${{ product.priceAfter }}</span>
+                  <span class="original-price" *ngIf="product.priceBefore > product.priceAfter">
+                    ${{ product.priceBefore }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Add to Cart Button -->
+              <button class="add-cart-btn" 
+                      (click)="addToCart(product, $event)"
+                      [disabled]="product.stock_quantity <= 0">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Scroll Button -->
+        <button class="scroll-btn right" (click)="scrollRight(secondScrollContainer)">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Full Width Tech Banner 2 -->
+  <section class="tech-banner" *ngIf="!loading">
+    <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1920&h=400&fit=crop&q=80" 
+         alt="Technology Workspace"
+         class="banner-image" />
+    <div class="banner-overlay">
+      <h2 class="banner-title">Elevate Your Workspace</h2>
+      <p class="banner-subtitle">Professional-grade equipment for the modern world</p>
     </div>
   </section>
 </div>
