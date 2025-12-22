@@ -383,7 +383,22 @@ public ProductDto updateProductWithImages(
         }
         return productDtos;
     }
+
+public List<ProductDto> getTopDiscountedProducts(int limit) {
+    Pageable pageable = PageRequest.of(0, limit);
+    List<ProductEntity> productEntities = productRepository.findTopDiscountedProducts(pageable);
+
+    List<ProductDto> productDtos = new ArrayList<>();
+    for (ProductEntity p : productEntities) {
+        productDtos.add(productMapper.convertToDto(p));
+    }
+    return productDtos;
 }
+
+
+    
+}
+
 
 
 
