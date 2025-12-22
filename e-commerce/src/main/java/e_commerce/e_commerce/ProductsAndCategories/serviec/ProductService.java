@@ -329,6 +329,8 @@ public ProductDto updateProductWithImages(
 
 
 
+   // Replace your filter methods with these corrected versions
+
     public List<ProductDto> filterProducts(
             String productName,
             String description,
@@ -342,20 +344,10 @@ public ProductDto updateProductWithImages(
         productName = (productName != null && productName.trim().isEmpty()) ? null : productName;
         description = (description != null && description.trim().isEmpty()) ? null : description;
 
-        // Calculate actual discount amounts from percentages
-        Double minDiscountAmount = null;
-        Double maxDiscountAmount = null;
-
-        if (minDiscount != null && minDiscount > 0) {
-            minDiscountAmount = minDiscount; // This will be the actual price difference
-        }
-        if (maxDiscount != null && maxDiscount < 100) {
-            maxDiscountAmount = maxDiscount * 1000; // Large number for percentage calculation
-        }
-
+        // Use discount percentages directly - query now handles conversion
         List<ProductEntity> productEntities = productRepository.filterProducts(
                 productName, description, minPrice, maxPrice,
-                minDiscountAmount, maxDiscountAmount, includeOutOfStock
+                minDiscount, maxDiscount, includeOutOfStock
         );
 
         List<ProductDto> productDtos = new ArrayList<>();
@@ -379,20 +371,10 @@ public ProductDto updateProductWithImages(
         productName = (productName != null && productName.trim().isEmpty()) ? null : productName;
         description = (description != null && description.trim().isEmpty()) ? null : description;
 
-        // Calculate actual discount amounts from percentages
-        Double minDiscountAmount = null;
-        Double maxDiscountAmount = null;
-
-        if (minDiscount != null && minDiscount > 0) {
-            minDiscountAmount = minDiscount;
-        }
-        if (maxDiscount != null && maxDiscount < 100) {
-            maxDiscountAmount = maxDiscount * 1000;
-        }
-
+        // Use discount percentages directly - query now handles conversion
         List<ProductEntity> productEntities = productRepository.filterProductsByCategory(
                 categoryId, productName, description, minPrice, maxPrice,
-                minDiscountAmount, maxDiscountAmount, includeOutOfStock
+                minDiscount, maxDiscount, includeOutOfStock
         );
 
         List<ProductDto> productDtos = new ArrayList<>();
@@ -401,9 +383,8 @@ public ProductDto updateProductWithImages(
         }
         return productDtos;
     }
-
-
 }
+
 
 
 
