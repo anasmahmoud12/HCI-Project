@@ -1,4 +1,4 @@
-      <app-navbar [isTransparent]="false"></app-navbar>
+<app-navbar [isTransparent]="false"></app-navbar>
 
 <div class="products-page">
   <div class="products-container">
@@ -22,12 +22,17 @@
       <!-- Filter and Sort Section -->
       <div class="filter-section">
         <div class="filter-buttons">
-          <button class="sort-btn">SORT</button>
-          <button class="filter-icon-btn">
+          <button class="sort-btn" (click)="toggleSortModal()">SORT</button>
+          <button class="filter-icon-btn" (click)="toggleFilterModal()">
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" clip-rule="evenodd" />
             </svg>
           </button>
+          
+          <!-- Current Sort Indicator -->
+          <span class="current-sort-indicator" *ngIf="currentSortBy !== 'date'">
+            Sorted by: {{ getSortLabel(currentSortBy) }}
+          </span>
         </div>
       </div>
 
@@ -80,9 +85,12 @@
                   <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </button>
-              <button class="wishlist-btn" (click)="addToWishlist(product)">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <button 
+                class="wishlist-btn" 
+                [class.active]="isInWishlist(product.id)"
+                (click)="toggleWishlist(product, $event)">
+                <svg width="18" height="18" [attr.fill]="isInWishlist(product.id) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </button>
             </div>
@@ -100,4 +108,144 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Sort Modal -->
+<div class="modal-overlay" *ngIf="showSortModal" (click)="closeSortModal()">
+  <div class="modal-content sort-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Sort by:</h2>
+      <button class="close-btn" (click)="closeSortModal()">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="sort-options">
+        <label *ngFor="let option of sortOptions" class="sort-option">
+          <input 
+            type="radio" 
+            name="sortBy" 
+            [value]="option.value"
+            [checked]="currentSortBy === option.value"
+            (change)="applySorting(option.value)">
+          <span>{{ option.label }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal-overlay" *ngIf="showFilterModal" (click)="closeFilterModal()">
+  <div class="modal-content filter-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Filter Options</h2>
+      <button class="close-btn" (click)="closeFilterModal()">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="filter-form">
+        <!-- Product Name -->
+        <div class="filter-group">
+          <label>Product Name:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filterOptions.productName"
+            placeholder="Enter product name">
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-group">
+          <label>Minimum Price: ${{ filterOptions.minPrice }}</label>
+          <input 
+            type="range" 
+            [(ngModel)]="filterOptions.minPrice"
+            min="0" 
+            max="20000"
+            step="10">
+        </div>
+
+        <div class="filter-group">
+          <label>Maximum Price: ${{ filterOptions.maxPrice }}</label>
+          <input 
+            type="range" 
+            [(ngModel)]="filterOptions.maxPrice"
+            min="0" 
+            max="20000"
+            step="10">
+        </div>
+
+        <!-- Product Description -->
+        <div class="filter-group">
+          <label>Product Description:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filterOptions.description"
+            placeholder="Enter description keywords">
+        </div>
+
+        <!-- Include Out of Stock -->
+        <div class="filter-group checkbox-group">
+          <label>
+            <input 
+              type="checkbox" 
+              [(ngModel)]="filterOptions.includeOutOfStock">
+            <span>Include Out of Stock</span>
+          </label>
+        </div>
+
+        <!-- Brand -->
+        <div class="filter-group">
+          <label>Brand:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filterOptions.brand"
+            placeholder="Enter brand name">
+        </div>
+
+        <!-- Discount Range -->
+        <div class="filter-group">
+          <label>Minimum Discount: {{ filterOptions.minDiscount }}%</label>
+          <input 
+            type="range" 
+            [(ngModel)]="filterOptions.minDiscount"
+            min="0" 
+            max="100"
+            step="5">
+        </div>
+
+        <div class="filter-group">
+          <label>Maximum Discount: {{ filterOptions.maxDiscount }}%</label>
+          <input 
+            type="range" 
+            [(ngModel)]="filterOptions.maxDiscount"
+            min="0" 
+            max="100"
+            step="5">
+        </div>
+
+        <!-- Category -->
+        <div class="filter-group">
+          <label>Category:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filterOptions.category"
+            placeholder="Enter category">
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="reset-btn" (click)="resetFilters()">Reset</button>
+      <button class="apply-btn" (click)="applyFilters()">Apply Filter</button>
+    </div>
+  </div>
+
 </div>

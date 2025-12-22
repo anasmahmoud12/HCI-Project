@@ -2,6 +2,7 @@ package e_commerce.e_commerce.ProductsAndCategories.controller;
 
 import e_commerce.e_commerce.ProductsAndCategories.DTO.CategoryDto;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.CategoryService;
+import e_commerce.e_commerce.ProductsAndCategories.serviec.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,6 +17,9 @@ import java.util.List;
 @RequestMapping("/api/categories")
 @CrossOrigin(origins = "*")
 public class CategoryController {
+
+    @Autowired
+    private SearchService searchService;
 
     @Autowired
     private CategoryService categoryService;
@@ -115,5 +119,18 @@ System.out.println("jhsjhjhsdhj");
         CategoryDto category = categoryService.getCategory(id);
         return ResponseEntity.ok(category);
     }
+
+    /**
+     * Search categories
+     * GET /api/categories/search?q=electronics
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<CategoryDto>> searchCategories(
+            @RequestParam(value = "q", required = false) String query) {
+        List<CategoryDto> categories = searchService.searchCategories(query);
+        return ResponseEntity.ok(categories);
+    }
+
+
     
 }

@@ -95,6 +95,7 @@ public ProductDto updateProductWithImages(
         // Update basic product fields
         existingProduct.setName(name);
         existingProduct.setDescription(description);
+//        existingProduct.setBrand(brand);
         existingProduct.setPriceBefore(priceBefore);
         existingProduct.setPriceAfter(priceAfter);
         existingProduct.setStock_quantity(stockQuantity);
@@ -250,6 +251,7 @@ public ProductDto updateProductWithImages(
                 .stock_quantity(stockQuantity)
                 .categoryId(categoryId)
                 .created_At(LocalDateTime.now())
+//                .brand(brand)
                 .build();
 
 
@@ -273,7 +275,131 @@ public ProductDto updateProductWithImages(
 
         return savedProduct;
     }
+
+
+
+
+
+    public List<ProductDto> getAllProductsSorted(String sortBy) {
+        List<ProductEntity> productEntities;
+
+        switch (sortBy) {
+            case "price":
+                productEntities = productRepository.findAllOrderByPriceAsc();
+                break;
+            case "discount":
+                productEntities = productRepository.findAllOrderByDiscountDesc();
+                break;
+            case "date":
+            default:
+                productEntities = productRepository.findAll(); // Already sorted by date from DB
+                break;
+        }
+
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (ProductEntity p : productEntities) {
+            productDtos.add(productMapper.convertToDto(p));
+        }
+        return productDtos;
+    }
+
+    public List<ProductDto> getProductsByCategorySorted(Long categoryId, String sortBy) {
+        List<ProductEntity> productEntities;
+
+        switch (sortBy) {
+            case "price":
+                productEntities = productRepository.findByCategoryIdOrderByPriceAsc(categoryId);
+                break;
+            case "discount":
+                productEntities = productRepository.findByCategoryIdOrderByDiscountDesc(categoryId);
+                break;
+            case "date":
+            default:
+                productEntities = productRepository.findByCategoryId(categoryId); // Already sorted by date
+                break;
+        }
+
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (ProductEntity p : productEntities) {
+            productDtos.add(productMapper.convertToDto(p));
+        }
+        return productDtos;
+    }
+
+
+
+
+   // Replace your filter methods with these corrected versions
+
+    public List<ProductDto> filterProducts(
+            String productName,
+            String description,
+            Double minPrice,
+            Double maxPrice,
+            Double minDiscount,
+            Double maxDiscount,
+            Boolean includeOutOfStock) {
+
+        // Convert empty strings to null
+        productName = (productName != null && productName.trim().isEmpty()) ? null : productName;
+        description = (description != null && description.trim().isEmpty()) ? null : description;
+
+        // Use discount percentages directly - query now handles conversion
+        List<ProductEntity> productEntities = productRepository.filterProducts(
+                productName, description, minPrice, maxPrice,
+                minDiscount, maxDiscount, includeOutOfStock
+        );
+
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (ProductEntity p : productEntities) {
+            productDtos.add(productMapper.convertToDto(p));
+        }
+        return productDtos;
+    }
+
+    public List<ProductDto> filterProductsByCategory(
+            Long categoryId,
+            String productName,
+            String description,
+            Double minPrice,
+            Double maxPrice,
+            Double minDiscount,
+            Double maxDiscount,
+            Boolean includeOutOfStock) {
+
+        // Convert empty strings to null
+        productName = (productName != null && productName.trim().isEmpty()) ? null : productName;
+        description = (description != null && description.trim().isEmpty()) ? null : description;
+
+        // Use discount percentages directly - query now handles conversion
+        List<ProductEntity> productEntities = productRepository.filterProductsByCategory(
+                categoryId, productName, description, minPrice, maxPrice,
+                minDiscount, maxDiscount, includeOutOfStock
+        );
+
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (ProductEntity p : productEntities) {
+            productDtos.add(productMapper.convertToDto(p));
+        }
+        return productDtos;
+    }
+
+public List<ProductDto> getTopDiscountedProducts(int limit) {
+    Pageable pageable = PageRequest.of(0, limit);
+    List<ProductEntity> productEntities = productRepository.findTopDiscountedProducts(pageable);
+
+    List<ProductDto> productDtos = new ArrayList<>();
+    for (ProductEntity p : productEntities) {
+        productDtos.add(productMapper.convertToDto(p));
+    }
+    return productDtos;
 }
+
+
+    
+}
+
+
 
 
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import e_commerce.e_commerce.ProductsAndCategories.DTO.ProductDto;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.ProductService;
+import e_commerce.e_commerce.ProductsAndCategories.serviec.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +19,8 @@ import java.util.List;
 @RequestMapping("/api/products")
 @CrossOrigin("*")
 public class ProductController {
+    @Autowired
+    private SearchService searchService;
 
     @Autowired
     private ProductService productService;
@@ -85,6 +88,8 @@ public class ProductController {
             @PathVariable Long id,
             @RequestParam("name") String name,
             @RequestParam("description") String description,
+//            @RequestParam("brand") String brand,
+
             @RequestParam("priceBefore") Double priceBefore,
             @RequestParam("priceAfter") Double priceAfter,
             @RequestParam("stock_quantity") Integer stockQuantity,
@@ -191,12 +196,13 @@ public class ProductController {
             @RequestParam("priceAfter") Double priceAfter,
             @RequestParam("stock_quantity") Integer stockQuantity,
             @RequestParam("categoryId") Long categoryId,
+//            @RequestParam("brand") String brand,
             @RequestParam(value = "primaryImageIndex", defaultValue = "0") Integer primaryImageIndex,
             @RequestParam("images") MultipartFile[] images) {
 
         try {
             ProductDto createdProduct = productService.addProductWithImages(
-                    name, description, priceBefore, priceAfter, stockQuantity,
+                    name, description,priceBefore, priceAfter, stockQuantity,
                     categoryId, primaryImageIndex, images
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
@@ -204,5 +210,94 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+
+
+
+    /**
+     * Search all products
+     * GET /api/products/search?q=laptop
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDto>> searchProducts(
+            @RequestParam(value = "q", required = false) String query) {
+        List<ProductDto> products = searchService.searchAllProducts(query);
+        return ResponseEntity.ok(products);
+    }
+
+    /**
+     * Search products within a specific category
+     * GET /api/products/search/category/5?q=laptop
+     */
+    @GetMapping("/search/category/{categoryId}")
+    public ResponseEntity<List<ProductDto>> searchProductsByCategory(
+            @RequestParam(value = "q", required = false) String query,
+            @PathVariable Long categoryId) {
+        List<ProductDto> products = searchService.searchProductsByCategory(query, categoryId);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/sorted")
+    public ResponseEntity<List<ProductDto>> getAllProductsSorted(
+            @RequestParam(value = "sortBy", defaultValue = "date") String sortBy) {
+        List<ProductDto> products = productService.getAllProductsSorted(sortBy);
+        return ResponseEntity.ok(products);
+    }
+
+    // Get products by category with sorting
+    @GetMapping("/category/{categoryId}/sorted")
+    public ResponseEntity<List<ProductDto>> getProductsByCategorySorted(
+            @PathVariable Long categoryId,
+            @RequestParam(value = "sortBy", defaultValue = "date") String sortBy) {
+        List<ProductDto> products = productService.getProductsByCategorySorted(categoryId, sortBy);
+        return ResponseEntity.ok(products);
+    }
+
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<ProductDto>> filterProducts(
+            @RequestParam(value = "productName", required = false) String productName,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "minPrice", required = false) Double minPrice,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(value = "minDiscount", required = false) Double minDiscount,
+            @RequestParam(value = "maxDiscount", required = false) Double maxDiscount,
+            @RequestParam(value = "includeOutOfStock", defaultValue = "true") Boolean includeOutOfStock) {
+
+        List<ProductDto> products = productService.filterProducts(
+                productName, description, minPrice, maxPrice,
+                minDiscount, maxDiscount, includeOutOfStock
+        );
+        return ResponseEntity.ok(products);
+    }
+
+    // Filter products by category
+    @GetMapping("/category/{categoryId}/filter")
+    public ResponseEntity<List<ProductDto>> filterProductsByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(value = "productName", required = false) String productName,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "minPrice", required = false) Double minPrice,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(value = "minDiscount", required = false) Double minDiscount,
+            @RequestParam(value = "maxDiscount", required = false) Double maxDiscount,
+            @RequestParam(value = "includeOutOfStock", defaultValue = "true") Boolean includeOutOfStock) {
+
+        List<ProductDto> products = productService.filterProductsByCategory(
+                categoryId, productName, description, minPrice, maxPrice,
+                minDiscount, maxDiscount, includeOutOfStock
+        );
+        return ResponseEntity.ok(products);
+    }
+
+    
+    @GetMapping("/top-discounts")
+    public ResponseEntity<List<ProductDto>> getTopDiscountedProducts(
+            @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        List<ProductDto> products = productService.getTopDiscountedProducts(limit);
+        return ResponseEntity.ok(products);
+    }
+
+
 
 }

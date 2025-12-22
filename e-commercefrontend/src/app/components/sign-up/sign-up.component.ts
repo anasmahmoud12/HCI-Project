@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../nav-bar/nav-bar.component';
 import { RegisterRequest, UserService } from '../../services/UserService';
-// import { UserService, RegisterRequest } from '../../services/user.service'; // Changed import
+
 
 @Component({
   selector: 'app-signup',
@@ -15,105 +15,141 @@ import { RegisterRequest, UserService } from '../../services/UserService';
   styleUrls: ['./sign-up.component.css']
 })
 export class SignupComponent {
+  // Form fields
   firstName = '';
   lastName = '';
   email = '';
   password = '';
   confirmPassword = '';
   
+  // UI state
   loading = false;
   errorMessage = '';
   successMessage = '';
 
   constructor(
-    private userService: UserService, // Changed from authService
+    private userService: UserService,
     private router: Router
   ) {}
 
-  // Method called from template
+  /**
+   * Handle form submission
+   */
   sighUp() {
     // Clear previous messages
     this.errorMessage = '';
     this.successMessage = '';
 
-    // Basic validation
+    // Validate all fields are filled
     if (!this.firstName || !this.lastName || !this.email || !this.password || !this.confirmPassword) {
       this.errorMessage = 'Please fill in all fields';
-      alert('Please fill in all fields');
+      alert('❌ Please fill in all fields');
       return;
     }
 
-    // Email validation
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.email)) {
       this.errorMessage = 'Please enter a valid email address';
-      alert('Please enter a valid email address');
+      alert('❌ Please enter a valid email address');
       return;
     }
 
-    // Password validation
+    // Validate password length
     if (this.password.length < 4) {
       this.errorMessage = 'Password must be at least 4 characters long';
-      alert('Password must be at least 4 characters long');
+      alert('❌ Password must be at least 4 characters long');
       return;
     }
 
+    // Validate passwords match
     if (this.password !== this.confirmPassword) {
       this.errorMessage = 'Passwords do not match';
-      alert('Passwords do not match');
+      alert('❌ Passwords do not match');
       return;
     }
 
+    // Show loading state
     this.loading = true;
 
-    // Prepare user data for backend
+    // Prepare registration data
     const userData: RegisterRequest = {
       firstName: this.firstName,
       lastName: this.lastName,
       email: this.email,
       password: this.password
-      // Note: Removed the 'name' field as your backend expects firstName/lastName separately
     };
 
-    this.userService.register(userData).subscribe({ // Changed to userService
-      next: (response) => {
+    console.log('📤 Sending registration request for:', this.email);
+
+    // Call registration service
+    this.userService.register(userData).subscribe({
+      next: (response: string) => {
+        // Success! Backend returned: "User registered successfully!"
+        console.log('✅ Registration successful!');
+        console.log('Server response:', response);
+        
         this.loading = false;
+        this.successMessage = response;
         
-        // Check if response is a string (old backend) or object (new backend)
-        if (typeof response === 'string') {
-          // Old backend - just string response
-          this.successMessage = response;
-          alert('✅ ' + response);
-        } else if (response && response.jwtToken) {
-          // New backend - UserDTO response with JWT
-          this.successMessage = 'Registration successful!';
-          console.log('Registration successful! User:', response);
-          alert(`✅ Registration successful! Welcome ${response.firstName}!`);
-          
-          // If auto-login after registration, navigate to home
-          this.router.navigate(['/home']);
-        }
+        // Show success message to user
+        alert(`✅ ${response}\n\nYou can now login with your credentials.`);
         
-        // Redirect after 2 seconds
+        // Navigate to login page after short delay
         setTimeout(() => {
           this.router.navigate(['/login']);
-        }, 2000);
+        }, 1500);
       },
       error: (error) => {
-        this.loading = false;
-        console.error('Registration error:', error);
+        // Error occurred during registration
+        console.error('❌ Registration failed');
+        console.error('Error details:', error);
         
+        this.loading = false;
+        
+        // Handle different error scenarios
         if (error.status === 409) {
-          this.errorMessage = 'Email already exists. Please use a different email.';
-          alert('❌ Email already exists. Please use a different email.');
-        } else if (error.error && typeof error.error === 'string') {
-          this.errorMessage = error.error;
-          alert(`❌ ${error.error}`);
-        } else {
+          // HTTP 409 Conflict - Email already exists
+          this.errorMessage = 'Email is already in use!';
+          alert('❌ Email is already in use! Please use a different email address.');
+        } 
+        else if (error.status === 400) {
+          // HTTP 400 Bad Request - Invalid data
+          this.errorMessage = 'Invalid registration data';
+          alert('❌ Invalid registration data. Please check your inputs.');
+        } 
+        else if (error.status === 0) {
+          // HTTP 0 - Network error, backend not reachable
+          this.errorMessage = 'Cannot connect to server';
+          alert('❌ Cannot connect to server.\n\nPlease make sure:\n1. Backend is running on http://localhost:8080\n2. CORS is enabled on the backend\n3. No firewall is blocking the connection');
+        } 
+        else if (error.error) {
+          // Get error message from response body
+          const errorMsg = typeof error.error === 'string' 
+            ? error.error 
+            : error.error.message || 'Registration failed';
+          this.errorMessage = errorMsg;
+          alert(`❌ ${errorMsg}`);
+        } 
+        else {
+          // Generic error
           this.errorMessage = 'Registration failed. Please try again.';
           alert('❌ Registration failed. Please try again.');
         }
       }
     });
+  }
+
+  /**
+   * Reset form fields
+   */
+  resetForm() {
+    this.firstName = '';
+    this.lastName = '';
+    this.email = '';
+    this.password = '';
+    this.confirmPassword = '';
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 }

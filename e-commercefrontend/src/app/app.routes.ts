@@ -34,6 +34,7 @@ export const routes: Routes = [
   { path: 'home', component: HomeComponent },
   // { path: '', redirectTo: '/login', pathMatch: 'full' },
   {path:'cart',component:CartComponent},
+  {path :'wishlist',component: WishlistComponent},
   // {path:'orders',component:}
   {path:'products',component:ProductsComponent},
   {path:'orders',component:OrderHistoryComponent},
@@ -65,5 +66,6 @@ export const routes: Routes = [
     ]
   },
     { path: '', redirectTo: '/login', pathMatch: 'full' }
+
 
 ];

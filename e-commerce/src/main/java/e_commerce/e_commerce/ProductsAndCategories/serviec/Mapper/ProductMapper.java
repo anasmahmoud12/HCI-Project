@@ -37,6 +37,7 @@ public class ProductMapper {
                 .priceAfter(dto.getPriceAfter())
                 .stock_quantity(dto.getStock_quantity())
                 .category(categoryEntity)
+//                .brand(dto.getBrand())
                 .build();
 
     }
@@ -63,6 +64,7 @@ public class ProductMapper {
                 .stock_quantity(entity.getStock_quantity())
                 .categoryId(categoryId)
                 .productImages(productImageDtos)
+//                .brand(entity.getBrand())
                 .build();
 
     }

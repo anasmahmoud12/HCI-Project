@@ -7,6 +7,8 @@ import { CartService } from "../../services/cart.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { NavbarComponent } from "../nav-bar/nav-bar.component";
+import { SearchService } from "../../services/SearchService";
+import { WishlistService } from "../../services/wishlist.service";
 
 @Component({
   selector: 'app-products',
@@ -19,24 +21,61 @@ export class ProductsComponent implements OnInit, OnDestroy {
   categoryId: number = 0;
   
   products: ProductView[] = [];
+  allProducts: ProductView[] = [];
   loading: boolean = false;
   error: string = '';
+  wishlistStatus: Map<number, boolean> = new Map();
+  currentSearchQuery: string = '';
+  
+  // Sort and Filter
+  showSortModal: boolean = false;
+  showFilterModal: boolean = false;
+  currentSortBy: string = 'date';
+  sortOptions = [
+    { value: 'date', label: 'Date (Newest First)' },
+    { value: 'price', label: 'Price (Low to High)' },
+    { value: 'discount', label: 'Discount (High to Low)' }
+  ];
+  
+  // Filter options
+  filterOptions = {
+    minPrice: 0,
+    maxPrice: 20000,
+    productName: '',
+    description: '',
+    includeOutOfStock: true,
+    brand: '',
+    minDiscount: 0,
+    maxDiscount: 100,
+    category: ''
+  };
   
   private destroy$ = new Subject<void>();
 
   constructor(
     private productService: ProductService,
+    private searchService: SearchService,
     private cartService: CartService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Routerو
+    private wishlistService: WishlistService
   ) {}
 
   ngOnInit() {
-    // Listen to route parameter changes
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.categoryId = params['categoryId'] ? +params['categoryId'] : 0;
+      this.currentSearchQuery = '';
+      this.currentSortBy = 'date';
       this.loadProducts();
+      this.loadWishlistStatus();
     });
+
+    this.searchService.searchQuery$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(query => {
+        this.currentSearchQuery = query;
+        this.performSearch(query);
+      });
   }
 
   ngOnDestroy() {
@@ -48,15 +87,25 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
-    console.log(this.categoryId);
-    const request = this.categoryId === 0 
-      ? this.productService.getAllProducts()
-      : this.productService.getProductsByCategory(this.categoryId);
+    console.log('Loading products - Category:', this.categoryId, 'Sort:', this.currentSortBy);
+
+    let request;
+    
+    if (this.currentSortBy === 'date') {
+      request = this.categoryId === 0 
+        ? this.productService.getAllProducts()
+        : this.productService.getProductsByCategory(this.categoryId);
+    } else {
+      request = this.categoryId === 0 
+        ? this.productService.getAllProductsSorted(this.currentSortBy)
+        : this.productService.getProductsByCategorySorted(this.categoryId, this.currentSortBy);
+    }
 
     request.pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: any) => {
-        console.log('Products received:', data);
-        this.products = data || [];
+        console.log('Products loaded successfully:', data?.length || 0, 'products');
+        this.allProducts = data || [];
+        this.products = this.allProducts;
         this.loading = false;
       },
       error: (err) => {
@@ -67,6 +116,143 @@ export class ProductsComponent implements OnInit, OnDestroy {
     });
   }
 
+loadWishlistStatus() {
+    this.wishlistService.wishlist$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(wishlist => {
+        this.wishlistStatus.clear();
+        wishlist.forEach(item => {
+          this.wishlistStatus.set(item.product.id, true);
+        });
+      });
+  }
+
+checkWishlistStatus() {
+    this.products.forEach(product => {
+      this.wishlistService.isInWishlist(product.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (isInWishlist) => {
+            this.wishlistStatus.set(product.id, isInWishlist);
+          },
+          error: () => {
+            this.wishlistStatus.set(product.id, false);
+          }
+        });
+    });
+  }
+  isInWishlist(productId: number): boolean {
+    return this.wishlistStatus.get(productId) || false;
+  }
+
+  performSearch(query: string) {
+    if (!query || query.trim() === '') {
+      this.products = this.allProducts;
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    const searchRequest = this.categoryId === 0
+      ? this.searchService.searchProducts(query)
+      : this.searchService.searchProductsByCategory(query, this.categoryId);
+
+    searchRequest.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: ProductView[]) => {
+        console.log('Search results:', data);
+        this.products = data || [];
+        this.loading = false;
+        
+        if (this.products.length === 0) {
+          this.error = `No products found for "${query}"`;
+        }
+      },
+      error: (err) => {
+        console.error('Error searching products:', err);
+        this.error = 'Failed to search products. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  toggleSortModal() {
+    this.showSortModal = !this.showSortModal;
+    if (this.showSortModal) {
+      this.showFilterModal = false;
+    }
+  }
+
+  closeSortModal() {
+    this.showSortModal = false;
+  }
+
+  applySorting(sortBy: string) {
+    console.log('Applying sort:', sortBy);
+    this.currentSortBy = sortBy;
+    this.closeSortModal();
+    this.loadProducts();
+  }
+
+  getSortLabel(sortBy: string): string {
+    const option = this.sortOptions.find(opt => opt.value === sortBy);
+    return option ? option.label : 'Date';
+  }
+
+  toggleFilterModal() {
+    this.showFilterModal = !this.showFilterModal;
+    if (this.showFilterModal) {
+      this.showSortModal = false;
+    }
+  }
+
+  closeFilterModal() {
+    this.showFilterModal = false;
+  }
+
+  applyFilters() {
+    console.log('Filters to be applied:', this.filterOptions);
+    this.closeFilterModal();
+    this.loading = true;
+    this.error = '';
+
+    const request = this.categoryId === 0
+      ? this.productService.filterProducts(this.filterOptions)
+      : this.productService.filterProductsByCategory(this.categoryId, this.filterOptions);
+
+    request.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: ProductView[]) => {
+        console.log('Filter results:', data);
+        this.products = data || [];
+        this.allProducts = this.products;
+        this.loading = false;
+
+        if (this.products.length === 0) {
+          this.error = 'No products found matching your filters';
+        }
+      },
+      error: (err) => {
+        console.error('Error filtering products:', err);
+        this.error = 'Failed to filter products. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
+
+  resetFilters() {
+    this.filterOptions = {
+      minPrice: 0,
+      maxPrice: 20000,
+      productName: '',
+      description: '',
+      includeOutOfStock: true,
+      brand: '',
+      minDiscount: 0,
+      maxDiscount: 100,
+      category: ''
+    };
+  }
+
   addToCart(product: ProductView) {
     if (product.stock_quantity <= 0) {
       alert('This product is out of stock!');
@@ -74,12 +260,33 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
     
     this.cartService.addToCart(product, 1);
-    
-    // Show success message
     this.showSuccessMessage(`${product.name} added to cart!`);
   }
 
-  private showSuccessMessage(message: string) {
+toggleWishlist(product: ProductView, event: Event) {
+    event.stopPropagation();
+    
+    this.wishlistService.toggleWishlist(product.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          const isAdded = response.action === 'added';
+          this.wishlistStatus.set(product.id, isAdded);
+          
+          if (isAdded) {
+            this.showSuccessMessage(`${product.name} added to wishlist!`, 'success');
+          } else {
+            this.showSuccessMessage(`${product.name} removed from wishlist!`, 'info');
+          }
+        },
+        error: (err) => {
+          console.error('Error toggling wishlist:', err);
+          this.showSuccessMessage('Failed to update wishlist', 'error');
+        }
+      });
+  }
+
+  private showSuccessMessage(message: string, type: 'success' | 'info' | 'error' = 'success') {
     const existingToast = document.querySelector('.success-toast');
     if (existingToast) {
       existingToast.remove();
@@ -116,7 +323,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   getPrimaryImage(product: ProductView): string {
     if (!product.productImages || product.productImages.length === 0) {
-      console.log('No images found, using fallback');
       return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80';
     }
     return `data:image/jpeg;base64,${product.productImages[0].img}`;
@@ -124,7 +330,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   getDiscountPercentage(product: ProductView): number {
     if (product.priceBefore && product.priceBefore > product.priceAfter) {
-      return Math.round(((product.priceBefore - product.priceAfter) / product.priceAfter) * 100);
+      return Math.round(((product.priceBefore - product.priceAfter) / product.priceBefore) * 100);
     }
     return 0;
   }
@@ -136,4 +342,5 @@ export class ProductsComponent implements OnInit, OnDestroy {
   goBackToCategories() {
     this.router.navigate(['/categories']);
   }
+
 }

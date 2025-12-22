@@ -64,6 +64,7 @@ export interface ProductView{
 
   createdAt: string;  
   updatedAt: string;
+  brand:string
 
   priceBefore: number;
   priceAfter: number;
