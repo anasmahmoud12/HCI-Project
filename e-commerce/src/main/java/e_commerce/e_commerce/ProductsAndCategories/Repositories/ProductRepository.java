@@ -82,7 +82,12 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
          @Param("maxDiscount") Double maxDiscount,
          @Param("includeOutOfStock") Boolean includeOutOfStock
  );
+ @Query("SELECT p FROM ProductEntity p WHERE p.priceBefore > p.priceAfter " +
+         "ORDER BY (p.priceBefore - p.priceAfter) DESC")
+ List<ProductEntity> findTopDiscountedProducts(Pageable pageable);
+
 
 
 }
+
 
