@@ -179,4 +179,8 @@ export class ProductService {
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:8080/api/categories');
   }
+getTopDiscountedProducts(limit: number = 20): Observable<ProductView[]> {
+  console.log('Fetching top discounted products with limit:', limit);
+  return this.http.get<ProductView[]>(`${this.apiUrl}/top-discounts?limit=${limit}`);
+}
 }
