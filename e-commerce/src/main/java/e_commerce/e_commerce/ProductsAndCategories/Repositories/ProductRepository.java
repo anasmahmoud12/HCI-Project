@@ -43,14 +43,16 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
  List<ProductEntity> findByCategoryIdOrderByDiscountDesc(@Param("categoryId") Long categoryId);
 
 
+//i change those
+ // Filter all products - FIXED VERSION
  @Query("SELECT p FROM ProductEntity p WHERE " +
-         "(:productName IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%'))) AND " +
-         "(:description IS NULL OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
+         "(:productName IS NULL OR :productName = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%'))) AND " +
+         "(:description IS NULL OR :description = '' OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
          "(:minPrice IS NULL OR p.priceAfter >= :minPrice) AND " +
          "(:maxPrice IS NULL OR p.priceAfter <= :maxPrice) AND " +
-         "(:minDiscount IS NULL OR (p.priceBefore - p.priceAfter) >= :minDiscount) AND " +
-         "(:maxDiscount IS NULL OR (p.priceBefore - p.priceAfter) <= :maxDiscount) AND " +
-         "(:includeOutOfStock = true OR p.stock_quantity > 0)")
+         "(:includeOutOfStock = true OR p.stock_quantity > 0) AND " +
+         "(:minDiscount IS NULL OR (p.priceBefore - p.priceAfter) >= (:minDiscount * p.priceBefore / 100)) AND " +
+         "(:maxDiscount IS NULL OR :maxDiscount = 100 OR (p.priceBefore - p.priceAfter) <= (:maxDiscount * p.priceBefore / 100))")
  List<ProductEntity> filterProducts(
          @Param("productName") String productName,
          @Param("description") String description,
@@ -61,15 +63,15 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
          @Param("includeOutOfStock") Boolean includeOutOfStock
  );
 
- // Filter products by category
+ // Filter products by category - FIXED VERSION
  @Query("SELECT p FROM ProductEntity p WHERE p.category.id = :categoryId AND " +
-         "(:productName IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%'))) AND " +
-         "(:description IS NULL OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
+         "(:productName IS NULL OR :productName = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%'))) AND " +
+         "(:description IS NULL OR :description = '' OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
          "(:minPrice IS NULL OR p.priceAfter >= :minPrice) AND " +
          "(:maxPrice IS NULL OR p.priceAfter <= :maxPrice) AND " +
-         "(:minDiscount IS NULL OR (p.priceBefore - p.priceAfter) >= :minDiscount) AND " +
-         "(:maxDiscount IS NULL OR (p.priceBefore - p.priceAfter) <= :maxDiscount) AND " +
-         "(:includeOutOfStock = true OR p.stock_quantity > 0)")
+         "(:includeOutOfStock = true OR p.stock_quantity > 0) AND " +
+         "(:minDiscount IS NULL OR (p.priceBefore - p.priceAfter) >= (:minDiscount * p.priceBefore / 100)) AND " +
+         "(:maxDiscount IS NULL OR :maxDiscount = 100 OR (p.priceBefore - p.priceAfter) <= (:maxDiscount * p.priceBefore / 100))")
  List<ProductEntity> filterProductsByCategory(
          @Param("categoryId") Long categoryId,
          @Param("productName") String productName,
@@ -82,6 +84,5 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
  );
 
 
-
-
 }
+
