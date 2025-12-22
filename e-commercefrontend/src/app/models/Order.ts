@@ -23,6 +23,7 @@ export interface OrderResponse {
   createdAt: string;
   orderItems: OrderItemResponse[];
   user: UserBasicInfo;
+   payment: string; 
 }
 
 export interface OrderItemResponse {

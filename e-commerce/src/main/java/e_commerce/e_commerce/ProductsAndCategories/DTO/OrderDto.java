@@ -18,7 +18,7 @@ private String payment ;
         private Integer quantity;
         private double priceOfOne;
         private double totalPrice;
-                private String payment ;
+//                private String payment ;
 
     }
 }

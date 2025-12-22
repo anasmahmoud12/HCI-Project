@@ -6,16 +6,7 @@ import java.util.List;
 
 import e_commerce.e_commerce.utils.Entities.Address;
 import e_commerce.e_commerce.utils.Entities.User;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,10 +26,17 @@ public class OrderEntity {
     @Column(unique = true , nullable = false)//thing unique for the order 
     private String orderNumber;
     private double totalPrice;
+    private String status;//we can make enum to it
 
-    private String status;//we can make enum to it 
-//    private String paymentMethod;//////>>>?????
+    private String paymentMethod;
 
+    private String paymentStatus;
+
+    private String paymentId;
+
+    private String payerId;
+
+    private LocalDateTime paymentDate;
 
     @ManyToOne
     @JoinColumn(name ="user_id", nullable = false)
@@ -49,7 +47,6 @@ public class OrderEntity {
 //    private Address shippingAddress;
 
     private LocalDateTime createdAt;
-   private String payment;
 
     //  gom3a is leaving this for now . 3shan el orderItem
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable } from 'rxjs';
 import { Order } from './admin-models/order.model';
 @Injectable({
   providedIn: 'root'
@@ -28,5 +28,21 @@ export class OrderService {
 
   getOrdersByUserId(userId: number): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.apiUrl}/user/${userId}`);
+  }
+  setCashPayment(orderId: number, userId?: number): Observable<any> {
+    console.log('🔵 Setting cash payment for order:', orderId);
+    
+    const effectiveUserId = userId;
+    
+    const url = `${this.apiUrl}/${orderId}/user/${effectiveUserId}`;
+    
+    console.log('🔵 Request URL:', url);
+    
+    return this.http.put<any>(url, {}).pipe(
+      catchError((error) => {
+        console.error('Error setting cash payment:', error);
+        throw error;
+      })
+    );
   }
 }

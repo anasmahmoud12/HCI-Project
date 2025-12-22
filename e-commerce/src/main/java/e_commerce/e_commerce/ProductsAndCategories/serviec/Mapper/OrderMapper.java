@@ -22,10 +22,11 @@ public class OrderMapper {
         return OrderEntity.builder()
                 .user(user)
                 .status(orderDto.getStatus() != null ? orderDto.getStatus() : "PENDING")
+                .paymentMethod(orderDto.getPayment()) // Set payment method from DTO
+                .paymentStatus("PENDING")
                 .totalPrice(orderDto.getTotalPriceOfOrder())
                 .createdAt(LocalDateTime.now())
                 .orderNumber(generateOrderNumber())
-                .payment(orderDto.getPayment())
                 .build();
     }
 
@@ -45,6 +46,8 @@ public class OrderMapper {
         OrderDto dto = new OrderDto();
         dto.setStatus(order.getStatus());
         dto.setTotalPriceOfOrder(order.getTotalPrice());
+        dto.setPayment(order.getPaymentMethod()); // Map payment method back
+
 
         order.getOrderItems().forEach(orderItem -> {
             OrderDto.OrderItemRequest itemDto = new OrderDto.OrderItemRequest();
@@ -60,6 +63,7 @@ public class OrderMapper {
 
     // NEW METHOD: Convert to detailed response DTO with full product information
     public OrderResponseDTO toResponseDto(OrderEntity order) {
+
         return OrderResponseDTO.builder()
                 .id(order.getId())
                 .orderNumber(order.getOrderNumber())
@@ -68,7 +72,7 @@ public class OrderMapper {
                 .createdAt(order.getCreatedAt())
                 .orderItems(mapOrderItems(order.getOrderItems()))
                 .user(mapUser(order.getUser()))
-                .payment(order.getPayment())
+                .payment(order.getPaymentMethod())
                 .build();
     }
 

@@ -133,6 +133,18 @@
                   (click)="viewOrderDetails(order)">
                   <i class="bi bi-eye me-2"></i> View Full Details
                 </button>
+                <button 
+  *ngIf="needsPayment(order)"
+  class="btn btn-paypal w-100 mb-2"
+  (click)="payWithPaypal(order)">
+  <i class="fab fa-paypal me-2"></i> Pay with PayPal
+</button>
+<button 
+  *ngIf="(order)"
+  class="btn btn-success w-100 mb-2"
+  (click)="makeCashPayment(order.id)">
+  <i class="bi bi-cash-coin me-2"></i> Pay with Cash
+</button>
                 
                 <button 
                   *ngIf="canCancelOrder(order)"

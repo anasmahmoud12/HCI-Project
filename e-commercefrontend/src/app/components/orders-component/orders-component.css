@@ -473,3 +473,147 @@
 .modal-items-list::-webkit-scrollbar-thumb:hover {
   background: #764ba2;
 }
+/* Add to your orders-component.css */
+
+/* PayPal Button Styling */
+.btn-paypal {
+  background: linear-gradient(135deg, #003087 0%, #009cde 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.btn-paypal:hover {
+  background: linear-gradient(135deg, #002b73 0%, #0088cc 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 48, 135, 0.3);
+}
+
+.btn-paypal:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* PayPal Icon */
+.fab.fa-paypal {
+  font-size: 1.2rem;
+}
+
+/* Paid Status */
+.status-paid {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* Pending Payment Status */
+.status-pending-payment {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+/* Payment Status Display */
+.payment-status {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.payment-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.payment-completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.payment-failed {
+  background: #f8d7da;
+  color: #721c24;
+}/* Add to your orders-component.css */
+
+/* Payment Method Badges */
+.payment-method-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-paypal {
+  background: linear-gradient(135deg, #003087 0%, #009cde 100%);
+  color: white;
+}
+
+.badge-cash {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.badge-card {
+  background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+  color: white;
+}
+
+/* Cash Payment Button */
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  color: white;
+  transition: all 0.3s;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #218838 0%, #1ba87e 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Payment Method Display */
+.payment-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 4px solid #28a745;
+}
+
+.payment-info h6 {
+  color: #28a745;
+  margin-bottom: 0.5rem;
+}
+
+.cash-instructions {
+  background: #e7f3ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.cash-instructions h6 {
+  color: #007bff;
+  margin-bottom: 0.5rem;
+}
+
+.cash-instructions ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.cash-instructions li {
+  margin: 0.25rem 0;
+  color: #555;
+}

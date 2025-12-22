@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Payment with Order Integration</title>
+    <style>
+        /* Same CSS as before, just add this additional style */
+        .order-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Test PayPal Payment with Your Order System</h2>
+
+    <!-- Order Creation Form -->
+    <div class="form-group">
+        <h3>1. Create a Test Order</h3>
+        <div>
+            <label>User ID:</label>
+            <input type="number" id="userId" value="1" placeholder="User ID">
+        </div>
+        <div>
+            <label>Payment Method:</label>
+            <select id="payment">
+                <option value="PAYPAL">PayPal</option>
+                <option value="COD">Cash on Delivery</option>
+            </select>
+        </div>
+        <button onclick="createTestOrder()">Create Test Order</button>
+    </div>
+
+    <!-- Payment Section -->
+    <div id="paymentSection" style="display: none;">
+        <h3>2. Pay for Order</h3>
+        <div class="order-details">
+            <p><strong>Order ID:</strong> <span id="displayOrderId">-</span></p>
+            <p><strong>Order Number:</strong> <span id="displayOrderNumber">-</span></p>
+            <p><strong>Total Amount:</strong> $<span id="displayOrderTotal">0.00</span></p>
+            <p><strong>Payment Method:</strong> <span id="displaypayment">-</span></p>
+            <p><strong>Status:</strong> <span id="displayOrderStatus">-</span></p>
+        </div>
+        <button onclick="payWithPayPal()" style="background-color: #003087;">
+            <img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png"
+                 alt="PayPal" style="height: 26px; vertical-align: middle;">
+            Pay with PayPal
+        </button>
+    </div>
+
+    <!-- Direct Order ID Payment -->
+    <div class="form-group">
+        <h3>Or Pay for Existing Order</h3>
+        <div>
+            <label>Order ID:</label>
+            <input type="number" id="existingOrderId" placeholder="Enter existing Order ID">
+        </div>
+        <div>
+            <label>User ID (optional for validation):</label>
+            <input type="number" id="existingUserId" placeholder="User ID (optional)">
+        </div>
+        <button onclick="loadExistingOrder()">Load Order & Pay</button>
+    </div>
+
+    <div id="status" class="status"></div>
+</div>
+
+<script>
+    let currentOrder = null;
+
+    async function createTestOrder() {
+        const userId = document.getElementById('userId').value;
+        const payment = document.getElementById('payment').value;
+
+        if (!userId) {
+            showMessage('Please enter User ID', 'error');
+            return;
+        }
+
+        showMessage('Creating test order...', 'info');
+
+        try {
+            // Create a test order DTO
+            const orderDto = {
+                status: "PENDING",
+                payment: paymentMethod,
+                totalPriceOfOrder: 99.99,
+                items: [
+                    {
+                        productId: 1,
+                        quantity: 2,
+                        priceOfOne: 49.99,
+                        totalPrice: 99.98
+                    }
+                ]
+            };
+
+            // Call your existing order creation endpoint
+            const response = await fetch(`/api/orders/create?userId=${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(orderDto)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const order = await response.json();
+            currentOrder = order;
+
+            // Show order details
+            document.getElementById('displayOrderId').textContent = order.id;
+            document.getElementById('displayOrderNumber').textContent = order.orderNumber;
+            document.getElementById('displayOrderTotal').textContent = order.totalPrice.toFixed(2);
+            document.getElementById('displaypayment').textContent = order.payment;
+            document.getElementById('displayOrderStatus').textContent = order.status;
+            document.getElementById('paymentSection').style.display = 'block';
+
+            showMessage(`Order created successfully! Order #${order.orderNumber}`, 'success');
+
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Failed to create order: ' + error.message, 'error');
+        }
+    }
+
+    async function loadExistingOrder() {
+        const orderId = document.getElementById('existingOrderId').value;
+        const userId = document.getElementById('existingUserId').value;
+
+        if (!orderId) {
+            showMessage('Please enter Order ID', 'error');
+            return;
+        }
+
+        showMessage('Loading order...', 'info');
+
+        try {
+            // Call your order endpoint
+let url = `http://localhost:8080/api/orders/${orderId}/user/${userId}`;
+            if (userId) {
+                url += `?userId=${userId}`;
+            }
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Order not found or access denied. Status: ${response.status}`);
+            }
+
+            const order = await response.json();
+            currentOrder = order;
+
+            // Show order details
+            document.getElementById('displayOrderId').textContent = order.id;
+            document.getElementById('displayOrderNumber').textContent = order.orderNumber;
+            document.getElementById('displayOrderTotal').textContent = order.totalPrice.toFixed(2);
+            document.getElementById('displaypayment').textContent = order.payment;
+            document.getElementById('displayOrderStatus').textContent = order.status;
+            document.getElementById('paymentSection').style.display = 'block';
+
+            showMessage(`Order loaded successfully!`, 'success');
+
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Failed to load order: ' + error.message, 'error');
+        }
+    }
+
+    async function payWithPayPal() {
+        if (!currentOrder) {
+            showMessage('No order selected', 'error');
+            return;
+        }
+
+        if (currentOrder.payment !== 'PAYPAL') {
+            showMessage('This order is not set for PayPal payment', 'error');
+            return;
+        }
+
+        showMessage('Creating PayPal payment...', 'info');
+
+        try {
+            const orderId = currentOrder.id;
+            const userId = document.getElementById('userId').value ||
+                           document.getElementById('existingUserId').value;
+
+            // Build URL for payment creation
+            let url = `http://localhost:8080/api/payments/create?orderId=${orderId}`;
+            if (userId) {
+                url += `&userId=${userId}`;
+            }
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success && result.approvalUrl) {
+                showMessage('Redirecting to PayPal...', 'success');
+                // Redirect to PayPal
+                window.location.href = result.approvalUrl;
+            } else {
+                showMessage('Failed to create payment: ' + (result.error || 'Unknown error'), 'error');
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Payment request failed: ' + error.message, 'error');
+        }
+    }
+
+    function showMessage(message, type) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = message;
+        statusDiv.className = 'status ' + type;
+        statusDiv.style.display = 'block';
+
+        setTimeout(() => {
+            if (statusDiv.textContent === message) {
+                statusDiv.style.display = 'none';
+            }
+        }, 5000);
+    }
+</script>
+</body>
+</html>

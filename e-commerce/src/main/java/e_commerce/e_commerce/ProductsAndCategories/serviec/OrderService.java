@@ -5,6 +5,7 @@ import e_commerce.e_commerce.ProductsAndCategories.Entities.OrderEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.OrderItemEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.ProductEntity;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.OrderRepository;
+import e_commerce.e_commerce.ProductsAndCategories.Repositories.PaymentRepository;
 import e_commerce.e_commerce.ProductsAndCategories.Repositories.ProductRepository;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.OrderMapper;
 import e_commerce.e_commerce.utils.Entities.User;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +28,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final PaymentRepository paymentRepository;
 
     @Transactional
     public OrderEntity createOrder(Long userId, OrderDto orderDto) {
@@ -76,7 +79,46 @@ public class OrderService {
         order.setTotalPrice(calculatedTotal);
 
         // 5. Save order
+        if ("COD".equalsIgnoreCase(orderDto.getPayment())) {
+            order.setPaymentStatus("PENDING");
+            order.setStatus("PENDING_PAYMENT");
+        } else if ("PAYPAL".equalsIgnoreCase(orderDto.getPayment())) {
+            order.setPaymentStatus("PENDING");
+            order.setStatus("PENDING_PAYMENT");
+        } else {
+            order.setPaymentStatus("PENDING");
+            order.setStatus("PENDING");
+        }
         return orderRepository.save(order);
+    }
+    @Transactional
+    public OrderEntity updateOrderPaymentStatus(Long orderId, String paymentId, String payerId, boolean isSuccess) {
+        OrderEntity order = getOrderById(orderId);
+
+        if (isSuccess) {
+            order.setPaymentStatus("COMPLETED");
+            order.setStatus("PROCESSING");
+            order.setPaymentId(paymentId);
+            order.setPayerId(payerId);
+            order.setPaymentDate(LocalDateTime.now());
+
+            // No need to restore stock here since it was already reserved
+        } else {
+            order.setPaymentStatus("FAILED");
+            order.setStatus("PAYMENT_FAILED");
+
+            // Restore product stock if payment failed
+            restoreStock(order);
+        }
+
+        return orderRepository.save(order);
+    }
+    private void restoreStock(OrderEntity order) {
+        for (OrderItemEntity orderItem : order.getOrderItems()) {
+            ProductEntity product = orderItem.getProduct();
+            product.setStock_quantity(product.getStock_quantity() + orderItem.getQuantity());
+            productRepository.save(product);
+        }
     }
 
     // Get all orders for a user
@@ -95,14 +137,25 @@ public class OrderService {
     public OrderEntity getOrderById(Long orderId, Long userId) {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-
+System.out.println("aaa");
+        System.out.println(userId);
+        System.out.println(orderId);
         // Validate that the order belongs to the user
         if (!order.getUser().getId().equals(userId)) {
+            System.out.println("---");
             throw new RuntimeException("Unauthorized access to order");
         }
 
         return order;
     }
+    @Transactional(readOnly = true)
+
+    public OrderEntity getOrderById(Long orderId) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        return order;
+    }
+
 
     // Cancel order (change status)
     @Transactional
@@ -110,7 +163,7 @@ public class OrderService {
         OrderEntity order = getOrderById(orderId, userId);
 
         // Only allow cancellation if order is still pending
-        if (!"PENDING".equals(order.getStatus())) {
+        if (!"PENDING".equals(order.getStatus())&& !"PENDING_PAYMENT".equals(order.getStatus())) {
             throw new RuntimeException("Cannot cancel order with status: " + order.getStatus());
         }
 
@@ -122,17 +175,19 @@ public class OrderService {
         }
 
         order.setStatus("CANCELLED");
+        order.setPaymentStatus("CANCELLED");
+
         return orderRepository.save(order);
     }
-    
+
     @Transactional
     public List<OrderEntity> getAllOrdersAdmin() {
         return orderRepository.findAllByOrderByCreatedAtDesc();
     }
+
     @Transactional
     public OrderEntity updateOrderStatus(Long orderId, String status) {
-        OrderEntity order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        OrderEntity order = getOrderById(orderId);
 
         // Validate status
         validateOrderStatus(status);
@@ -140,16 +195,24 @@ public class OrderService {
         // Update status
         order.setStatus(status);
 
+        // If status is COMPLETED and payment was COD, mark payment as completed
+        if ("COMPLETED".equals(status) && "COD".equalsIgnoreCase(order.getPaymentMethod())) {
+            order.setPaymentStatus("COMPLETED");
+            order.setPaymentDate(LocalDateTime.now());
+        }
+
         return orderRepository.save(order);
     }
 
     private void validateOrderStatus(String status) {
-        List<String> validStatuses = Arrays.asList(
-                "PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED"
+        List<String> validStatuses = List.of(
+                "PENDING", "PENDING_PAYMENT", "PROCESSING", "SHIPPED",
+                "DELIVERED", "COMPLETED", "CANCELLED", "PAYMENT_FAILED"
         );
 
         if (!validStatuses.contains(status.toUpperCase())) {
             throw new RuntimeException("Invalid order status: " + status);
         }
     }
+
 }

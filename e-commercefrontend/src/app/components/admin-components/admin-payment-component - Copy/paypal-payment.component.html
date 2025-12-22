@@ -1,0 +1,162 @@
+<div class="paypal-payment-container">
+  <!-- Payment In Progress State -->
+  <div *ngIf="paymentInProgress" class="payment-in-progress">
+    <div class="spinner"></div>
+    <h3>Payment in Progress</h3>
+    <p>{{ infoMessage || 'Please complete the payment in the PayPal window.' }}</p>
+    
+    <div class="payment-details" *ngIf="orderNumber || amount">
+      <div class="detail-item" *ngIf="orderNumber">
+        <strong>Order:</strong> {{ orderNumber }}
+      </div>
+      <div class="detail-item" *ngIf="amount">
+        <strong>Amount:</strong> ${{ amount.toFixed(2) }}
+      </div>
+    </div>
+    
+    <p class="hint">
+      <i class="bi bi-info-circle"></i>
+      If the PayPal window didn't open, check your popup blocker.
+    </p>
+    
+    <div class="action-buttons">
+      <button (click)="manualCheckStatus()" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-clockwise"></i> Check Status
+      </button>
+      <button (click)="cancelPayment()" class="btn btn-outline-danger">
+        <i class="bi bi-x-circle"></i> Cancel Payment
+      </button>
+    </div>
+  </div>
+  
+  <!-- Non-Payment States -->
+  <div *ngIf="!paymentInProgress">
+    <!-- Header -->
+    <div class="payment-header">
+      <h1><i class="fab fa-paypal"></i> PayPal Payment</h1>
+      <div class="order-info">
+        <p><strong>Order ID:</strong> {{ orderId || 'Not specified' }}</p>
+        <p *ngIf="orderNumber"><strong>Order Number:</strong> {{ orderNumber }}</p>
+        <p *ngIf="amount"><strong>Amount:</strong> <span class="amount">${{ amount.toFixed(2) }}</span></p>
+      </div>
+    </div>
+    
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <h3>Processing...</h3>
+      <p>{{ infoMessage || 'Initializing payment...' }}</p>
+    </div>
+    
+    <!-- Error State -->
+    <div *ngIf="errorMessage && !loading" class="error-state">
+      <div class="error-icon">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <h3>Payment Error</h3>
+      <p class="error-message">{{ errorMessage }}</p>
+      
+      <div class="suggestions" *ngIf="errorMessage.includes('popup') || errorMessage.includes('blocked')">
+        <p><strong>To allow popups:</strong></p>
+        <ol>
+          <li>Click the popup blocker icon in your browser's address bar</li>
+          <li>Select "Always allow pop-ups from this site"</li>
+          <li>Try again</li>
+        </ol>
+      </div>
+      
+      <div class="button-group">
+        <button (click)="retryPayment()" class="btn btn-primary" [disabled]="!orderId">
+          <i class="bi bi-arrow-clockwise"></i> Try Again
+        </button>
+        <button (click)="viewOrder()" class="btn btn-outline-secondary" *ngIf="orderId">
+          <i class="bi bi-eye"></i> View Order
+        </button>
+        <button (click)="cancelPayment()" class="btn btn-outline-danger">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+      </div>
+    </div>
+    
+    <!-- Success State -->
+    <div *ngIf="successMessage && !loading" class="success-state">
+      <div class="success-icon">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <h3>Payment Successful!</h3>
+      <p class="success-message">{{ successMessage }}</p>
+      <p>{{ infoMessage || 'Redirecting to orders page...' }}</p>
+      
+      <div class="success-details" *ngIf="orderId">
+        <p><i class="bi bi-check"></i> Order ID: {{ orderId }}</p>
+        <p><i class="bi bi-check"></i> Payment verified</p>
+      </div>
+      
+      <div class="button-group">
+        <button (click)="viewOrder()" class="btn btn-success" *ngIf="orderId">
+          <i class="bi bi-box-seam"></i> View Order Details
+        </button>
+        <button (click)="continueShopping()" class="btn btn-outline-primary">
+          <i class="bi bi-shop"></i> Continue Shopping
+        </button>
+      </div>
+    </div>
+    
+    <!-- Initial/Ready State -->
+    <div *ngIf="!loading && !errorMessage && !successMessage" class="payment-actions">
+      <div class="payment-description">
+        <h3>Secure Payment</h3>
+        <p>You will be redirected to PayPal's secure payment page to complete your transaction.</p>
+        
+        <div class="security-info">
+          <div class="security-item">
+            <i class="bi bi-shield-check text-success"></i>
+            <span>256-bit SSL encryption</span>
+          </div>
+          <div class="security-item">
+            <i class="bi bi-lock text-success"></i>
+            <span>Secure payment processing</span>
+          </div>
+          <div class="security-item">
+            <i class="bi bi-credit-card text-success"></i>
+            <span>No card details stored</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="amount-summary" *ngIf="amount">
+        <div class="summary-row">
+          <span>Order Total:</span>
+          <span class="total-amount">${{ amount.toFixed(2) }}</span>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <button 
+          (click)="initiatePaypalPayment()" 
+          class="btn btn-paypal"
+          [disabled]="!orderId || loading">
+          <i class="fab fa-paypal"></i> Pay with PayPal
+        </button>
+        
+        <div class="alternative-actions">
+          <button (click)="cancelPayment()" class="btn btn-link text-danger">
+            <i class="bi bi-x-circle"></i> Cancel Payment
+          </button>
+          <button (click)="viewOrder()" class="btn btn-link" *ngIf="orderId">
+            <i class="bi bi-eye"></i> View Order
+          </button>
+        </div>
+      </div>
+      
+      <div class="payment-terms">
+        <p class="text-muted small">
+          By proceeding, you agree to our 
+          <a href="#">Terms of Service</a> and 
+          <a href="#">Privacy Policy</a>.
+          Payments are processed securely by PayPal.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

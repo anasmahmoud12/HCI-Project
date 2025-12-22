@@ -2,11 +2,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, switchMap, takeUntil } from 'rxjs';
 import { OrderService } from '../../services/OrderService';
 import { OrderResponse } from '../../models/Order';
 import { NavbarComponent } from '../nav-bar/nav-bar.component';
-
+import { Router } from '@angular/router';
+import { PaypalPaymentComponent } from '../admin-components/admin-payment-component - Copy/paypal-payment.component';
+import { UserService } from '../../services/UserService';
 @Component({
   selector: 'app-order-history',
   standalone: true,
@@ -22,7 +24,7 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
-  constructor(private orderService: OrderService) {}
+  constructor(private orderService: OrderService, private router: Router, private userService: UserService) {}
 
   ngOnInit() {
     console.log('🟢 Order History Component Initialized');
@@ -33,6 +35,42 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+// Check if order needs payment
+needsPayment(order: OrderResponse): boolean {
+  // Check if order is PENDING and payment is not COMPLETED
+  // Adjust this logic based on your backend statuses
+  const needsPayment = (
+    order.status.toUpperCase() === 'PENDING' && 
+    (!order.payment || order.payment.toUpperCase() !== 'COMPLETED')
+  );
+  
+  console.log('Order needs payment check:', {
+    orderId: order.id,
+    status: order.status,
+    payment: order.payment,
+    needsPayment: needsPayment
+  });
+  
+  return needsPayment;
+}
+
+// Pay with PayPal
+payWithPaypal(order: OrderResponse): void {
+  console.log('Initiating PayPal payment for order:', order.id);
+  
+  // Show confirmation
+  if (!confirm(`Pay $${order.totalPrice.toFixed(2)} for Order ${order.orderNumber} via PayPal?`)) {
+    return;
+  }
+  
+  // Navigate to PayPal payment component
+     this.router.navigate(['/paypal-payment', order.id], {
+  queryParams: {
+    userId: this.userService.getUserId()
+  }
+});
+}
+
 
   loadOrders() {
     this.loading = true;
@@ -69,11 +107,20 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
   }
 
   // Get status badge class
-  getStatusClass(status: string): string {
-    const statusLower = status?.toLowerCase() || 'pending';
-    return `status-${statusLower}`;
+  // getStatusClass(status: string): string {
+  //   const statusLower = status?.toLowerCase() || 'pending';
+  //   return `status-${statusLower}`;
+  // }
+getStatusClass(status: string, payment?: string): string {
+  const statusLower = status?.toLowerCase() || 'pending';
+  
+  // If payment is completed, show as paid regardless of order status
+  if (payment && payment.toUpperCase() === 'COMPLETED') {
+    return 'status-paid';
   }
-
+  
+  return `status-${statusLower}`;
+}
   // Get total items in an order
   getTotalItems(order: OrderResponse): number {
     return order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -147,4 +194,43 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
     console.log('🔄 Retrying to load orders...');
     this.loadOrders();
   }
+  payWithCash(order: OrderResponse): void {
+  if (!confirm(`Pay $${order.totalPrice.toFixed(2)} for Order ${order.orderNumber} with Cash?\n\nYou will pay upon delivery.`)) {
+    return;
+  }
+  
+  this.loading = true;
+  
+  this.orderService.makeCashPayment(order.id, order.user.id)
+    .pipe(
+      switchMap(updatedOrder => {
+        // Reload orders after successful update
+        return this.orderService.getMyOrders();
+      })
+    )
+    .subscribe({
+      next: (orders) => {
+        this.loading = false;
+        this.orders = orders;
+        
+        // Update selected order if it's the current one
+        if (this.selectedOrder && this.selectedOrder.id === order.id) {
+          this.selectedOrder = orders.find(o => o.id === order.id) || null;
+        }
+        
+        alert(`✅ Order ${order.orderNumber} updated to Cash payment!\nYou will pay upon delivery.`);
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Error updating payment method:', error);
+        alert('❌ Failed to update payment method. Please try again.');
+      }
+    });
 }
+makeCashPayment(orderId: number): void {
+    console.log('🔵 Setting cash payment for order:', orderId)  ;
+    const userId = this.userService.getUserId();
+    if (userId !== null && userId !== undefined) {
+      this.orderService.makeCashPayment(orderId, userId).subscribe();
+    }
+}}

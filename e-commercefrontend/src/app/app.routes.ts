@@ -24,6 +24,8 @@ import { CartComponent } from './components/cart/cart.component';
 import { ProductsComponent } from './components/view-products/view-products.component';
 import { OrderHistoryComponent } from './components/orders-component/orders-component';
 import { CategoriesComponent } from './components/view-category/view-category.component';
+import{PaypalPaymentComponent } from './components/admin-components/admin-payment-component - Copy/paypal-payment.component';
+
 // import { OrdersComponent } from './components/orders-component/orders-component';
 
 export const routes: Routes = [
@@ -35,6 +37,14 @@ export const routes: Routes = [
   // {path:'orders',component:}
   {path:'products',component:ProductsComponent},
   {path:'orders',component:OrderHistoryComponent},
+   { 
+    path: 'paypal-payment/:orderId', 
+    component: PaypalPaymentComponent 
+  },
+  { 
+    path: 'paypal-payment', 
+    component: PaypalPaymentComponent 
+  },
    {
     path: 'products/:categoryId',
     component: ProductsComponent

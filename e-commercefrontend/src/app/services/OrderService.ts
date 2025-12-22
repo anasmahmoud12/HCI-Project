@@ -92,4 +92,8 @@ export class OrderService {
     console.error('❌ Final error message:', errorMessage);
     return throwError(() => new Error(errorMessage));
   }
+  makeCashPayment(orderId: number, userId?: number): Observable<any> {
+    console.log('🔵 Setting cash payment for order:', orderId)  ;
+    return this.http.put<any>(`${this.baseUrl}/${orderId}/user/${userId}`, {});
+}
 }

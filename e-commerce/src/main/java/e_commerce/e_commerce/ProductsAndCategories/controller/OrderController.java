@@ -3,6 +3,7 @@ package e_commerce.e_commerce.ProductsAndCategories.controller;
 import e_commerce.e_commerce.ProductsAndCategories.DTO.OrderDto;
 import e_commerce.e_commerce.ProductsAndCategories.DTO.OrderResponseDTO;
 import e_commerce.e_commerce.ProductsAndCategories.Entities.OrderEntity;
+import e_commerce.e_commerce.ProductsAndCategories.Repositories.OrderRepository;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.OrderMapper;
 import e_commerce.e_commerce.ProductsAndCategories.serviec.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderService orderService;
+    private  final OrderRepository orderRepository;
 
     // Place new order
     @PostMapping("/{userId}")
@@ -52,15 +54,19 @@ public class OrderController {
     }
 
     // Get single order by ID - NOW RETURNS FULL PRODUCT DETAILS
+    @Transactional
     @GetMapping("/{orderId}/user/{userId}")
     public ResponseEntity<?> getOrderById(
             @PathVariable Long orderId,
             @PathVariable Long userId) {
+        System.out.println(userId);
+        System.out.println(orderId);
         try {
             OrderEntity order = orderService.getOrderById(orderId, userId);
             OrderResponseDTO orderDto = OrderMapper.toResponseDto(order);
             return ResponseEntity.ok(orderDto);
         } catch (RuntimeException e) {
+            System.out.println("111");
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -91,4 +97,20 @@ public class OrderController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @Transactional
+    @PutMapping("/{orderId}/user/{userId}")
+    public ResponseEntity<?> setcashpayment(
+            @PathVariable Long orderId,
+            @PathVariable Long userId) {
+
+        try {
+            OrderEntity order = orderService.getOrderById(orderId, userId);
+            order.setPaymentMethod("CASH");
+            orderRepository.save(order);
+            return ResponseEntity.ok("");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }
