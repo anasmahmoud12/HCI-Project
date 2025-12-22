@@ -8,6 +8,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { NavbarComponent } from "../nav-bar/nav-bar.component";
 import { SearchService } from "../../services/SearchService";
+import { WishlistService } from "../../services/wishlist.service";
 
 @Component({
   selector: 'app-products',
@@ -23,6 +24,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   allProducts: ProductView[] = [];
   loading: boolean = false;
   error: string = '';
+  wishlistStatus: Map<number, boolean> = new Map();
   currentSearchQuery: string = '';
   
   // Sort and Filter
@@ -55,7 +57,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private searchService: SearchService,
     private cartService: CartService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Routerو
+    private wishlistService: WishlistService
   ) {}
 
   ngOnInit() {
@@ -64,6 +67,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       this.currentSearchQuery = '';
       this.currentSortBy = 'date';
       this.loadProducts();
+      this.loadWishlistStatus();
     });
 
     this.searchService.searchQuery$
@@ -110,6 +114,35 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+loadWishlistStatus() {
+    this.wishlistService.wishlist$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(wishlist => {
+        this.wishlistStatus.clear();
+        wishlist.forEach(item => {
+          this.wishlistStatus.set(item.product.id, true);
+        });
+      });
+  }
+
+checkWishlistStatus() {
+    this.products.forEach(product => {
+      this.wishlistService.isInWishlist(product.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (isInWishlist) => {
+            this.wishlistStatus.set(product.id, isInWishlist);
+          },
+          error: () => {
+            this.wishlistStatus.set(product.id, false);
+          }
+        });
+    });
+  }
+  isInWishlist(productId: number): boolean {
+    return this.wishlistStatus.get(productId) || false;
   }
 
   performSearch(query: string) {
@@ -230,7 +263,30 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.showSuccessMessage(`${product.name} added to cart!`);
   }
 
-  private showSuccessMessage(message: string) {
+toggleWishlist(product: ProductView, event: Event) {
+    event.stopPropagation();
+    
+    this.wishlistService.toggleWishlist(product.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          const isAdded = response.action === 'added';
+          this.wishlistStatus.set(product.id, isAdded);
+          
+          if (isAdded) {
+            this.showSuccessMessage(`${product.name} added to wishlist!`, 'success');
+          } else {
+            this.showSuccessMessage(`${product.name} removed from wishlist!`, 'info');
+          }
+        },
+        error: (err) => {
+          console.error('Error toggling wishlist:', err);
+          this.showSuccessMessage('Failed to update wishlist', 'error');
+        }
+      });
+  }
+
+  private showSuccessMessage(message: string, type: 'success' | 'info' | 'error' = 'success') {
     const existingToast = document.querySelector('.success-toast');
     if (existingToast) {
       existingToast.remove();
@@ -262,6 +318,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   addToWishlist(product: ProductView) {
     console.log('Added to wishlist:', product);
+    // Add your wishlist logic here
   }
 
   getPrimaryImage(product: ProductView): string {
@@ -285,4 +342,5 @@ export class ProductsComponent implements OnInit, OnDestroy {
   goBackToCategories() {
     this.router.navigate(['/categories']);
   }
+
 }
