@@ -197,7 +197,29 @@ private  final  OrderRepository orderRepository;
                 "</body>" +
                 "</html>";
     }
+    // Add to PayPalController.java
+    @GetMapping("/status/{orderId}")
+    public ResponseEntity<?> getPaymentStatus(@PathVariable Long orderId,
+                                              @RequestParam(required = false) Long userId) {
+        try {
+            OrderEntity order;
+            if (userId != null) {
+                order = orderService.getOrderById(orderId, userId);
+            } else {
+                order = orderService.getOrderById(orderId);
+            }
 
+            return ResponseEntity.ok(Map.of(
+                    "paymentStatus", order.getPaymentStatus(),
+                    "orderStatus", order.getStatus(),
+                    "orderId", orderId
+            ));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
     private String createCancelHtml(Long orderId, Long userId) {
         String redirectUrl = userId != null
                 ? "http://localhost:4200/checkout?orderId=" + orderId + "&userId=" + userId

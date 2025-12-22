@@ -1,68 +1,35 @@
 <!-- paypal-payment.component.html -->
 <div class="paypal-payment-container">
-  <div *ngIf="!paymentInProgress">
-    <!-- Initial State -->
-    <div class="payment-header">
-      <h2>PayPal Payment</h2>
-      <p class="order-info">Order ID: {{ orderId }}</p>
-    </div>
-    
-    <!-- Loading State -->
-    <div *ngIf="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Initializing PayPal payment...</p>
-    </div>
-    
-    <!-- Error State -->
-    <div *ngIf="errorMessage && !loading" class="error-state">
-      <div class="error-icon">⚠</div>
-      <h3>Payment Error</h3>
-      <p class="error-message">{{ errorMessage }}</p>
-      <div class="button-group">
-        <button (click)="retryPayment()" class="btn btn-primary">
-          Try Again
-        </button>
-        <button (click)="cancelPayment()" class="btn btn-secondary">
-          Cancel
-        </button>
-      </div>
-    </div>
-    
-    <!-- Success State -->
-    <div *ngIf="successMessage && !loading" class="success-state">
-      <div class="success-icon">✓</div>
-      <h3>Payment Successful!</h3>
-      <p class="success-message">{{ successMessage }}</p>
-      <p>Redirecting to order details...</p>
-    </div>
-    
-    <!-- Payment Button (only shown when no loading/error/success) -->
-    <div *ngIf="!loading && !errorMessage && !successMessage" class="payment-actions">
-      <p class="payment-description">
-        You will be redirected to PayPal to complete your payment securely.
-      </p>
-      
-      <button 
-        (click)="initiatePaypalPayment()" 
-        class="btn btn-paypal"
-        [disabled]="!orderId">
-        <i class="fab fa-paypal"></i> Pay with PayPal
-      </button>
-      
-      <button (click)="cancelPayment()" class="btn btn-secondary">
-        Cancel Payment
-      </button>
-    </div>
-  </div>
   
-  <!-- Payment In Progress State -->
+  <!-- Payment in progress -->
   <div *ngIf="paymentInProgress" class="payment-in-progress">
     <div class="spinner"></div>
-    <h3>Payment in Progress</h3>
-    <p>Please complete the payment in the PayPal window.</p>
-    <p class="hint">If the PayPal window didn't open, check your popup blocker.</p>
-    <button (click)="cancelPayment()" class="btn btn-secondary">
-      Cancel Payment
-    </button>
+    <h3>Processing Payment</h3>
+    <p>Please complete the payment in the popup window...</p>
+    <p class="hint">Do not close this window until payment is complete</p>
   </div>
+  
+  <!-- Initial loading -->
+  <div *ngIf="loading && !paymentInProgress" class="loading-state">
+    <div class="spinner"></div>
+    <h3>Preparing Payment</h3>
+    <p>Connecting to PayPal...</p>
+  </div>
+  
+  <!-- Success state -->
+  <div *ngIf="successMessage" class="success-state">
+    <div class="success-icon">✓</div>
+    <h3>Payment Successful</h3>
+    <p class="success-message">{{ successMessage }}</p>
+    <p>Redirecting to orders...</p>
+  </div>
+  
+  <!-- Error state -->
+  <div *ngIf="errorMessage && !loading && !paymentInProgress" class="error-state">
+    <div class="error-icon">✗</div>
+    <h3>Payment Issue</h3>
+    <p class="error-message">{{ errorMessage }}</p>
+    <p>Returning to orders...</p>
+  </div>
+  
 </div>

@@ -118,9 +118,16 @@
                     <option value="CANCELLED">Cancel</option>
                   </select>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ order.payment }}
-                </td>
+ <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+  <div class="flex flex-col space-y-1">
+    <span class="font-medium">{{ order.payment || 'N/A' }}</span>
+    <span [class]="getPaymentStatusBadgeClass(order.paymentstatus)"
+          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit">
+      {{ order.paymentstatus || 'Unknown' }}
+    </span>
+  </div>
+</td>
+            
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button 
                     (click)="viewOrderDetails(order)"
@@ -153,64 +160,101 @@
         </div>
       </div>
 
-      <!-- Order Details Modal -->
-      <div *ngIf="selectedOrder" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-          <!-- Modal Header -->
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold">Order Details: {{ selectedOrder.orderNumber }}</h3>
-            <button (click)="selectedOrder = null" class="text-gray-500 hover:text-gray-700">
-              ✕
-            </button>
+   <!-- Order Details Modal -->
+<div *ngIf="selectedOrder" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-bold">Order Details: {{ selectedOrder.orderNumber }}</h3>
+      <button (click)="selectedOrder = null" class="text-gray-500 hover:text-gray-700">
+        ✕
+      </button>
+    </div>
+    
+    <!-- Order Info -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <h4 class="font-semibold text-gray-700">Customer Information</h4>
+        <p class="text-sm font-medium">{{ selectedOrder.user.firstName }} {{ selectedOrder.user.lastName || '' }}</p>
+        <p class="text-sm text-gray-600">{{ selectedOrder.user.email }}</p>
+        <p class="text-sm text-gray-600 mt-2">Customer ID: {{ selectedOrder.user.id }}</p>
+      </div>
+      <div>
+        <h4 class="font-semibold text-gray-700">Payment Information</h4>
+        <div class="mt-2 space-y-2">
+          <div class="flex items-center">
+            <span class="text-sm font-medium text-gray-600 w-24">Method:</span>
+            <span class="text-sm text-gray-900">{{ selectedOrder.payment || 'Not specified' }}</span>
           </div>
-          
-          <!-- Order Info -->
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div>
-              <h4 class="font-semibold text-gray-700">Customer Information</h4>
-              <p class="text-sm">{{ selectedOrder.user.firstName }} </p>
-              <p class="text-sm text-gray-600">{{ selectedOrder.user.email }}</p>
-            </div>
-            <div>
-              <h4 class="font-semibold text-gray-700">Shipping Address</h4>
-            
-            </div>
+          <div class="flex items-center">
+            <span class="text-sm font-medium text-gray-600 w-24">Status:</span>
+            <span [class]="getPaymentStatusBadgeClass(selectedOrder.paymentstatus)" 
+                  class="px-2 py-1 text-xs font-semibold rounded-full">
+              {{ selectedOrder.paymentstatus || 'Unknown' }}
+            </span>
           </div>
-
-          <!-- Order Items -->
-          <div class="mb-6">
-            <h4 class="font-semibold text-gray-700 mb-2">Order Items</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div *ngFor="let item of selectedOrder.orderItems" class="flex items-center justify-between py-2 border-b last:border-b-0">
-                <div class="flex items-center">
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
-                    <div class="text-sm text-gray-500">
-                      Quantity: {{ item.quantity }} 
-                 
-                    </div>
-                  </div>
-                </div>
-                <div class="text-sm font-semibold">
-                  ${{ item.totalPrice | number:'1.2-2' }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Order Summary -->
-          <div class="flex justify-between items-center border-t pt-4">
-            <div>
-              <div class="text-sm text-gray-600">Order Total</div>
-              <div class="text-2xl font-bold">${{ selectedOrder.totalPrice | number:'1.2-2' }}</div>
-            </div>
-            <button 
-              (click)="selectedOrder = null"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Close
-            </button>
+          <div class="flex items-center">
+            <span class="text-sm font-medium text-gray-600 w-24">Order Status:</span>
+            <span [class]="getStatusBadgeClass(selectedOrder.status)" 
+                  class="px-2 py-1 text-xs font-semibold rounded-full">
+              {{ selectedOrder.status }}
+            </span>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+      <h4 class="font-semibold text-gray-700 mb-3">Order Summary</h4>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-600">Order Date</p>
+          <p class="text-sm font-medium">{{ selectedOrder.createdAt | date:'medium' }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">Total Items</p>
+          <p class="text-sm font-medium">{{ getTotalItems(selectedOrder) }} items</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="mb-6">
+      <h4 class="font-semibold text-gray-700 mb-2">Order Items ({{ selectedOrder.orderItems?.length || 0 }})</h4>
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div *ngFor="let item of selectedOrder.orderItems" class="flex items-center justify-between py-3 border-b last:border-b-0">
+          <div>
+            <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+            <div class="text-sm text-gray-500">
+              Quantity: {{ item.quantity }} × ${{ item.price | number:'1.2-2' }}
+            </div>
+            <div class="text-xs text-gray-400 mt-1">Product ID: {{ item.product.id }}</div>
+          </div>
+          <div class="text-sm font-semibold">
+            ${{ item.totalPrice | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Total -->
+    <div class="border-t pt-4">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <div class="text-sm text-gray-600">Subtotal</div>
+          <div class="text-2xl font-bold">${{ selectedOrder.totalPrice | number:'1.2-2' }}</div>
+        </div>
+        <div class="flex space-x-2">
+          <button 
+            (click)="selectedOrder = null"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
     </div>

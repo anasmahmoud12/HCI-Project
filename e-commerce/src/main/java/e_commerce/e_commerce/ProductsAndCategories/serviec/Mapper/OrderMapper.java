@@ -73,6 +73,7 @@ public class OrderMapper {
                 .orderItems(mapOrderItems(order.getOrderItems()))
                 .user(mapUser(order.getUser()))
                 .payment(order.getPaymentMethod())
+                .paymentstatus(order.getPaymentStatus())
                 .build();
     }
 

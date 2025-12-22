@@ -188,9 +188,26 @@ System.out.println("aaa");
     @Transactional
     public OrderEntity updateOrderStatus(Long orderId, String status) {
         OrderEntity order = getOrderById(orderId);
-
-        // Validate status
+//
+//        // Validate status
+//        validateOrderStatus(status);
+//
+//        // Update status
+//        order.setStatus(status);
+//
+//        // If status is COMPLETED and payment was COD, mark payment as completed
+//        if ("COMPLETED".equals(status) && "COD".equalsIgnoreCase(order.getPaymentMethod())) {
+//            order.setPaymentStatus("COMPLETED");
+//            order.setPaymentDate(LocalDateTime.now());
+//        }
+//
+//        return orderRepository.save(order);
         validateOrderStatus(status);
+
+        // Check if order can be updated (prevent updating completed/cancelled orders)
+        if ("COMPLETED".equals(order.getStatus()) || "CANCELLED".equals(order.getStatus())) {
+            throw new RuntimeException("Cannot update order with status: " + order.getStatus());
+        }
 
         // Update status
         order.setStatus(status);
@@ -201,11 +218,26 @@ System.out.println("aaa");
             order.setPaymentDate(LocalDateTime.now());
         }
 
+        // If status is CANCELLED, restore stock and update payment status
+        if ("CANCELLED".equals(status)) {
+            restoreStock(order);
+            order.setPaymentStatus("CANCELLED");
+        }
+
+        // If status is DELIVERED, automatically mark as COMPLETED
+        if ("DELIVERED".equals(status)) {
+            order.setStatus("COMPLETED");
+            if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+                order.setPaymentStatus("COMPLETED");
+                order.setPaymentDate(LocalDateTime.now());
+            }
+        }
+
         return orderRepository.save(order);
     }
 
     private void validateOrderStatus(String status) {
-        List<String> validStatuses = List.of(
+        List<String> validStatuses = Arrays.asList(
                 "PENDING", "PENDING_PAYMENT", "PROCESSING", "SHIPPED",
                 "DELIVERED", "COMPLETED", "CANCELLED", "PAYMENT_FAILED"
         );
@@ -214,5 +246,16 @@ System.out.println("aaa");
             throw new RuntimeException("Invalid order status: " + status);
         }
     }
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        OrderEntity order = getOrderById(orderId);
+
+        if (!"CANCELLED".equals(order.getStatus())) {
+            throw new RuntimeException("Can only delete cancelled orders");
+        }
+
+        orderRepository.delete(order);
+    }
+
 
 }

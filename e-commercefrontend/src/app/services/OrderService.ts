@@ -11,18 +11,35 @@ export class OrderService {
   private baseUrl = 'http://localhost:8080/api/orders';
   
   // HARDCODED USER ID FOR TESTING
-  private testUserId = 1;
 
   constructor(private http: HttpClient) {}
-
+private getUserId(): number {
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      console.error('❌ No userId found in localStorage. Please login first.');
+      throw new Error('User not authenticated. Please login.');
+    }
+    
+    const parsedUserId = parseInt(userId, 10);
+    
+    if (isNaN(parsedUserId)) {
+      console.error('❌ Invalid userId format in localStorage:', userId);
+      throw new Error('Invalid user ID format.');
+    }
+    
+    console.log('🔵 Retrieved userId from localStorage:', parsedUserId);
+    return parsedUserId;
+  }
   // Place a new order
   placeOrder(orderDto: OrderDto): Observable<OrderResponse> {
-    console.log('🔵 Placing order for user:', this.testUserId);
-    console.log('🔵 Request URL:', `${this.baseUrl}/${this.testUserId}`);
+    const userId = this.getUserId();
+    console.log('🔵 Placing order for user:', userId);
+    console.log('🔵 Request URL:', `${this.baseUrl}/${userId}`);
     console.log('🔵 Order data:', orderDto);
     
     return this.http.post<OrderResponse>(
-      `${this.baseUrl}/${this.testUserId}`,
+      `${this.baseUrl}/${userId}`,
       orderDto
     ).pipe(
       catchError(this.handleError)
@@ -31,11 +48,12 @@ export class OrderService {
 
   // Get all orders for current user
   getMyOrders(): Observable<OrderResponse[]> {
-    console.log('🔵 Fetching orders for user:', this.testUserId);
-    console.log('🔵 Request URL:', `${this.baseUrl}/user/${this.testUserId}`);
+    const userId = this.getUserId();
+    console.log('🔵 Fetching orders for user:', userId);
+    console.log('🔵 Request URL:', `${this.baseUrl}/user/${userId}`);
     
     return this.http.get<OrderResponse[]>(
-      `${this.baseUrl}/user/${this.testUserId}`
+      `${this.baseUrl}/user/${userId}`
     ).pipe(
       catchError(this.handleError)
     );
@@ -43,11 +61,12 @@ export class OrderService {
 
   // Get specific order
   getOrderById(orderId: number): Observable<OrderResponse> {
-    console.log('🔵 Fetching order:', orderId, 'for user:', this.testUserId);
-    console.log('🔵 Request URL:', `${this.baseUrl}/${orderId}/user/${this.testUserId}`);
+    const userId = this.getUserId();
+    console.log('🔵 Fetching order:', orderId, 'for user:', userId);
+    console.log('🔵 Request URL:', `${this.baseUrl}/${orderId}/user/${userId}`);
     
     return this.http.get<OrderResponse>(
-      `${this.baseUrl}/${orderId}/user/${this.testUserId}`
+      `${this.baseUrl}/${orderId}/user/${userId}`
     ).pipe(
       catchError(this.handleError)
     );
@@ -55,11 +74,12 @@ export class OrderService {
 
   // Cancel an order
   cancelOrder(orderId: number): Observable<OrderResponse> {
+    const userId = this.getUserId();
     console.log('🔵 Cancelling order:', orderId);
-    console.log('🔵 Request URL:', `${this.baseUrl}/${orderId}/cancel/user/${this.testUserId}`);
+    console.log('🔵 Request URL:', `${this.baseUrl}/${orderId}/cancel/user/${userId}`);
     
     return this.http.put<OrderResponse>(
-      `${this.baseUrl}/${orderId}/cancel/user/${this.testUserId}`,
+      `${this.baseUrl}/${orderId}/cancel/user/${userId}`,
       {}
     ).pipe(
       catchError(this.handleError)
@@ -67,10 +87,7 @@ export class OrderService {
   }
 
   // Set test user ID (optional - for testing different users)
-  setTestUserId(userId: number): void {
-    this.testUserId = userId;
-    console.log('✅ Test user ID set to:', userId);
-  }
+
 
   // Error handling
   private handleError(error: HttpErrorResponse): Observable<never> {

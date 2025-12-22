@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderService orderService;
-    private  final OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
     // Place new order
     @PostMapping("/{userId}")
@@ -32,6 +32,9 @@ public class OrderController {
         try {
             OrderEntity newOrder = orderService.createOrder(userId, orderRequest);
             OrderResponseDTO responseDto = OrderMapper.toResponseDto(newOrder);
+            System.out.println(responseDto.getPaymentstatus());
+            System.out.println(responseDto.getStatus());
+
             return ResponseEntity.ok(responseDto);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -68,7 +71,7 @@ public class OrderController {
         }
     }
 
-       @GetMapping
+    @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<?> getAllOrdersAdmin() {
         try {
@@ -81,6 +84,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     // Cancel an order
     @PutMapping("/{orderId}/cancel/user/{userId}")
     public ResponseEntity<?> cancelOrder(
@@ -94,17 +98,51 @@ public class OrderController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @Transactional
     @PutMapping("/{orderId}/user/{userId}")
     public ResponseEntity<?> setcashpayment(
             @PathVariable Long orderId,
             @PathVariable Long userId) {
+        System.out.println(orderId);
+        System.out.println(userId);
 
         try {
             OrderEntity order = orderService.getOrderById(orderId, userId);
             order.setPaymentMethod("CASH");
             orderRepository.save(order);
             return ResponseEntity.ok("");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{orderId}/status")
+    @Transactional
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam String status) {
+        try {
+            OrderEntity updatedOrder = orderService.updateOrderStatus(orderId, status);
+            OrderResponseDTO orderDto = OrderMapper.toResponseDto(updatedOrder);
+            return ResponseEntity.ok(orderDto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @DeleteMapping("/{orderId}")
+    @Transactional
+    public ResponseEntity<?> deleteOrder(@PathVariable Long orderId) {
+        try {
+            OrderEntity order = orderService.getOrderById(orderId);
+
+            // Only allow deletion of cancelled orders or with admin privilege
+            if (!"CANCELLED".equals(order.getStatus())) {
+                throw new RuntimeException("Can only delete cancelled orders");
+            }
+
+            orderRepository.delete(order);
+            return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

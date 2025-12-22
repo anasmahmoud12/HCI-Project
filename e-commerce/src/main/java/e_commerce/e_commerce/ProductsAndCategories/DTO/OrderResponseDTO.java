@@ -22,6 +22,7 @@ public class OrderResponseDTO {
     private List<OrderItemResponseDTO> orderItems;
     private UserBasicDTO user;
 private String payment;
+  private String  paymentstatus;
 
     @Data
     @AllArgsConstructor
