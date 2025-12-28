@@ -94,7 +94,7 @@ public class OrderService {
     @Transactional
     public OrderEntity updateOrderPaymentStatus(Long orderId, String paymentId, String payerId, boolean isSuccess) {
         OrderEntity order = getOrderById(orderId);
-
+System.out.println(isSuccess);
         if (isSuccess) {
             order.setPaymentStatus("COMPLETED");
             order.setStatus("PROCESSING");

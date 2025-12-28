@@ -59,9 +59,9 @@
               <div class="items-list">
                 <!-- Individual Item with Product Details -->
                 <div class="item-row" *ngFor="let item of order.orderItems">
-                  <div class="item-image-placeholder">
+                  <!-- <div class="item-image-placeholder">
                     <i class="bi bi-box"></i>
-                  </div>
+                  </div> -->
                   
                   <div class="item-details">
                     <h6 class="item-name">{{item.product.name}}</h6>
@@ -146,18 +146,18 @@
   <i class="bi bi-cash-coin me-2"></i> Pay with Cash
 </button>
                 
-                <button 
+                <!-- <button 
                   *ngIf="canCancelOrder(order)"
                   class="btn btn-danger w-100 mb-2"
                   (click)="cancelOrder(order.id)">
                   <i class="bi bi-x-circle me-2"></i> Cancel Order
-                </button>
+                </button> -->
 
-                <button 
+                <!-- <button 
                   class="btn btn-outline-secondary w-100"
                   (click)="reorder(order)">
                   <i class="bi bi-arrow-repeat me-2"></i> Reorder
-                </button>
+                </button> -->
               </div>
 
               <div class="secure-checkout mt-3 text-center">

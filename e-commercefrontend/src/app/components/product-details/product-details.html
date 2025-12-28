@@ -1,0 +1,183 @@
+<app-navbar [isTransparent]="false"></app-navbar>
+
+<div class="product-detail-page">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading product details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <svg width="80" height="80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h3>{{ error }}</h3>
+    <button class="retry-btn" (click)="goBack()">Go Back</button>
+  </div>
+
+  <!-- Product Content -->
+  <div *ngIf="!loading && !error && product" class="product-detail-container">
+    <!-- Back Button -->
+    <button class="back-button" (click)="goBack()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Back to Products
+    </button>
+
+    <div class="product-content">
+      <!-- Left Side - Images -->
+      <div class="product-images-section">
+        <!-- Main Image -->
+        <div class="main-image-container">
+          <!-- Discount Badge -->
+          <div *ngIf="getDiscountPercentage() > 0" class="discount-badge">
+            -{{ getDiscountPercentage() }}%
+          </div>
+
+          <!-- Out of Stock Badge -->
+          <div *ngIf="!isInStock()" class="stock-badge">
+            Out of Stock
+          </div>
+
+          <img [src]="getCurrentImageUrl()" [alt]="product.name" class="main-image" />
+        </div>
+
+        <!-- Thumbnail Images -->
+        <div class="thumbnail-container" *ngIf="product.productImages && product.productImages.length > 1">
+          <div *ngFor="let image of product.productImages; let i = index" 
+               class="thumbnail-wrapper"
+               [class.active]="i === selectedImageIndex"
+               (click)="selectImage(i)">
+            <img [src]="getImageUrl(i)" [alt]="product.name" class="thumbnail-image" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side - Product Info -->
+      <div class="product-info-section">
+        <!-- Product Name -->
+        <h1 class="product-name">{{ product.name }}</h1>
+
+        <!-- Brand -->
+        <div class="product-brand" *ngIf="product.brand">
+          <span class="brand-label">Brand:</span>
+          <span class="brand-value">{{ product.brand }}</span>
+        </div>
+
+        <!-- Price Section -->
+        <div class="price-container">
+          <div class="current-price">${{ product.priceAfter.toFixed(2) }}</div>
+          <div *ngIf="product.priceBefore > product.priceAfter" class="original-price">
+            ${{ product.priceBefore.toFixed(2) }}
+          </div>
+          <div *ngIf="getDiscountPercentage() > 0" class="save-amount">
+            Save ${{ (product.priceBefore - product.priceAfter).toFixed(2) }}
+          </div>
+        </div>
+
+        <!-- Stock Status -->
+        <div class="stock-status">
+          <div *ngIf="isInStock()" class="in-stock">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" 
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
+                    clip-rule="evenodd" />
+            </svg>
+            <span>In Stock: {{ product.stock_quantity }} available</span>
+          </div>
+          <div *ngIf="!isInStock()" class="out-of-stock">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" 
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" 
+                    clip-rule="evenodd" />
+            </svg>
+            <span>Out of Stock</span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="product-description">
+          <h3>Description</h3>
+          <p>{{ product.description }}</p>
+        </div>
+
+        <!-- Product Details -->
+        <div class="product-details">
+          <h3>Product Details</h3>
+          <div class="detail-item">
+            <span class="detail-label">Category ID:</span>
+            <span class="detail-value">{{ product.categoryId }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Added:</span>
+            <span class="detail-value">{{ product.createdAt | date: 'mediumDate' }}</span>
+          </div>
+          <div class="detail-item" *ngIf="product.updatedAt !== product.createdAt">
+            <span class="detail-label">Updated:</span>
+            <span class="detail-value">{{ product.updatedAt | date: 'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <!-- Quantity Selector -->
+        <div class="quantity-section" *ngIf="isInStock()">
+          <label class="quantity-label">Quantity:</label>
+          <div class="quantity-selector">
+            <button class="quantity-btn" (click)="decrementQuantity()" [disabled]="quantity <= 1">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" 
+                      d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" 
+                      clip-rule="evenodd" />
+              </svg>
+            </button>
+            <span class="quantity-value">{{ quantity }}</span>
+            <button class="quantity-btn" 
+                    (click)="incrementQuantity()" 
+                    [disabled]="quantity >= product.stock_quantity">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" 
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" 
+                      clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="add-to-cart-btn" 
+                  (click)="addToCart()" 
+                  [disabled]="!isInStock()">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Add to Cart
+          </button>
+
+          <button class="buy-now-btn" 
+                  (click)="buyNow()" 
+                  [disabled]="!isInStock()">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+            </svg>
+            Buy Now
+          </button>
+
+          <button class="wishlist-btn" 
+                  [class.active]="isInWishlist"
+                  (click)="toggleWishlist()">
+            <svg width="20" height="20" [attr.fill]="isInWishlist ? 'currentColor' : 'none'" 
+                 stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            {{ isInWishlist ? 'In Wishlist' : 'Add to Wishlist' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

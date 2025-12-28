@@ -39,9 +39,10 @@ export class OrderHistoryComponent implements OnInit, OnDestroy {
 needsPayment(order: OrderResponse): boolean {
   // Check if order is PENDING and payment is not COMPLETED
   // Adjust this logic based on your backend statuses
+  console.log('Checking if order needs payment:', order);
   const needsPayment = (
     order.status.toUpperCase() === 'PENDING' && 
-    (!order.payment || order.payment.toUpperCase() !== 'COMPLETED')
+    (!order.payment || order.paymentstatus.toUpperCase() !== 'COMPLETED')
   );
   
   console.log('Order needs payment check:', {
@@ -50,7 +51,7 @@ needsPayment(order: OrderResponse): boolean {
     payment: order.payment,
     needsPayment: needsPayment
   });
-  
+  console.log('Needs payment for order', order.id, ':', needsPayment);
   return needsPayment;
 }
 

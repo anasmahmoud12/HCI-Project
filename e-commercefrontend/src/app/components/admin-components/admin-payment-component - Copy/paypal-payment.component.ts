@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, interval, takeUntil } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -24,6 +24,10 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
   errorMessage: string = '';
   successMessage: string = '';
   infoMessage: string = '';
+  
+  // New state for popup closure
+  private popupClosedByUser = false;
+  private paymentCompleted = false;
   
   // PayPal popup window reference
   private paypalWindow: Window | null = null;
@@ -50,33 +54,23 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
     
     // Get orderId from route params
     this.route.params.subscribe(params => {
-      console.log('Route params:', params);
       if (params['orderId']) {
         this.orderId = +params['orderId'];
-        console.log('Order ID set to:', this.orderId);
       }
     });
     
     // Get userId from query params
     this.route.queryParams.subscribe(params => {
-      console.log('Query params:', params);
       if (params['userId']) {
         this.userId = +params['userId'];
-        console.log('User ID set to:', this.userId);
       }
       if (params['orderId'] && !this.orderId) {
         this.orderId = +params['orderId'];
       }
     });
     
-    // Auto-initiate payment if we have both IDs
-    if (this.orderId && this.userId) {
-      // Optional: Auto-start payment (uncomment if needed)
-      // this.initiatePaypalPayment();
-    }
-    
-    // Check for payment success/cancel in URL (in case user returns manually)
-    this.checkUrlForPaymentResult();
+    // Check for existing payment status
+    this.checkPaymentStatus();
   }
   
   ngOnDestroy(): void {
@@ -90,28 +84,6 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
   }
   
   /**
-   * Check URL for payment result parameters
-   */
-  private checkUrlForPaymentResult(): void {
-    this.route.queryParams.subscribe(params => {
-      if (params['paymentStatus']) {
-        const status = params['paymentStatus'];
-        if (status === 'success') {
-          this.successMessage = 'Payment completed successfully!';
-          setTimeout(() => {
-            this.router.navigate(['/orders']);
-          }, 3000);
-        } else if (status === 'cancelled') {
-          this.errorMessage = 'Payment was cancelled.';
-          setTimeout(() => {
-            this.router.navigate(['/orders']);
-          }, 3000);
-        }
-      }
-    });
-  }
-  
-  /**
    * Initialize PayPal payment
    */
   initiatePaypalPayment(): void {
@@ -120,17 +92,13 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Reset states
     this.loading = true;
     this.errorMessage = '';
     this.successMessage = '';
     this.infoMessage = 'Creating payment request...';
-    
-    // Validate order amount
-    if (this.amount && this.amount <= 0) {
-      this.errorMessage = 'Invalid order amount';
-      this.loading = false;
-      return;
-    }
+    this.popupClosedByUser = false;
+    this.paymentCompleted = false;
     
     // Prepare query parameters
     const params: any = { orderId: this.orderId };
@@ -139,10 +107,6 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
     }
     
     console.log('🔵 Initiating PayPal payment with params:', params);
-    
-    // Add timeout to request
-    const timeout$ = new Subject<void>();
-    setTimeout(() => timeout$.next(), 10000); // 10 second timeout
     
     this.http.post<any>('http://localhost:8080/api/payments/create', {}, { 
       params,
@@ -172,9 +136,6 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
           this.errorMessage = error.error?.error || 'Bad request. Please check order details.';
         } else if (error.status === 401 || error.status === 403) {
           this.errorMessage = 'Authentication failed. Please login again.';
-          setTimeout(() => {
-            this.router.navigate(['/login']);
-          }, 2000);
         } else if (error.status === 404) {
           this.errorMessage = 'Order not found.';
         } else if (error.status === 409) {
@@ -210,7 +171,7 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
     this.paypalWindow = window.open(
       approvalUrl,
       'PayPalPayment',
-      `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no`
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no`
     );
     
     if (!this.paypalWindow) {
@@ -227,7 +188,7 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
     
     // Set timeout for payment process
     setTimeout(() => {
-      if (this.paymentInProgress) {
+      if (this.paymentInProgress && !this.paymentCompleted) {
         this.errorMessage = 'Payment process timed out. Please check your PayPal account or try again.';
         this.paymentInProgress = false;
         this.cleanupPaymentWindow();
@@ -236,7 +197,7 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
   }
   
   /**
-   * Start checking payment status by polling the server
+   * Start checking payment status
    */
   private startPaymentStatusCheck(): void {
     // Clear any existing interval
@@ -244,12 +205,12 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
       clearInterval(this.paymentCheckInterval);
     }
     
+    // Check immediately first time
+    this.checkPaymentStatus();
+    
+    // Then set up interval
     this.paymentCheckInterval = setInterval(() => {
-      if (this.paypalWindow?.closed) {
-        // Popup was closed, check payment status
-        this.checkPaymentStatus();
-        this.cleanupPaymentWindow();
-      }
+      this.checkPaymentStatus();
     }, this.CHECK_INTERVAL);
   }
   
@@ -259,66 +220,93 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
   private checkPaymentStatus(): void {
     if (!this.orderId) return;
     
-    this.infoMessage = 'Checking payment status...';
+    // Don't check if we already know payment is completed
+    if (this.paymentCompleted) {
+      return;
+    }
     
-    let url = `http://localhost:8080/api/orders/${this.orderId}`;
+    const url = `http://localhost:8080/api/payments/status/${this.orderId}`;
+    const params: any = {};
     if (this.userId) {
-      url = `http://localhost:8080/api/orders/${this.orderId}/user/${this.userId}`;
+      params.userId = this.userId;
     }
     
     console.log('🔵 Checking payment status for order:', this.orderId);
     
-    this.http.get<any>(url).pipe(
+    this.http.get<any>(url, { params }).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (order) => {
-        this.paymentInProgress = false;
-        console.log('✅ Order status after payment:', order);
+      next: (response) => {
+        console.log('✅ Payment status response:', response);
         
-        if (order.payment === 'COMPLETED') {
+        const paymentStatus = response.paymentStatus;
+        const orderStatus = response.orderStatus;
+        
+        if (paymentStatus === 'COMPLETED' || paymentStatus === 'PAID') {
+          // Payment completed successfully
+          this.paymentCompleted = true;
+          this.paymentInProgress = false;
           this.successMessage = 'Payment completed successfully!';
           this.infoMessage = 'Redirecting to orders page...';
+          this.cleanupPaymentWindow();
           
-          // Navigate to orders page after delay
+          // Navigate after delay
           setTimeout(() => {
             this.router.navigate(['/orders'], {
-              queryParams: { paymentSuccess: true }
+              queryParams: { 
+                paymentSuccess: true,
+                orderId: this.orderId 
+              }
             });
           }, 2000);
           
-        } else if (order.payment === 'FAILED') {
+        } else if (paymentStatus === 'CANCELLED') {
+          // Payment was cancelled
+          this.paymentInProgress = false;
+          this.errorMessage = 'Payment was cancelled.';
+          this.infoMessage = '';
+          this.cleanupPaymentWindow();
+          
+          // Show retry option
+          setTimeout(() => {
+            if (this.errorMessage.includes('cancelled')) {
+              this.infoMessage = 'Click "Try Again" to restart payment.';
+            }
+          }, 1000);
+          
+        } else if (paymentStatus === 'FAILED') {
+          // Payment failed
+          this.paymentInProgress = false;
           this.errorMessage = 'Payment failed. Please try again.';
           this.infoMessage = '';
+          this.cleanupPaymentWindow();
           
-        } else if (order.payment === 'CANCELLED') {
-          this.errorMessage = 'Payment was cancelled.';
-          this.infoMessage = 'Redirecting to orders page...';
+        } else if (paymentStatus === 'PENDING') {
+          // Payment is still pending
+          this.infoMessage = 'Payment is being processed...';
           
-          setTimeout(() => {
-            this.router.navigate(['/orders']);
-          }, 2000);
+          // Check if popup is closed but payment is still pending
+          if (this.paypalWindow?.closed && !this.popupClosedByUser) {
+            // Popup closed without completing payment
+            this.popupClosedByUser = true;
+            this.errorMessage = 'You closed the payment window. Payment is still pending.';
+            this.infoMessage = 'Please wait or check your PayPal account.';
+          }
           
         } else {
-          // Payment still pending
-          this.infoMessage = 'Payment is still being processed...';
-          // Continue checking if popup is still open
-          if (this.paypalWindow && !this.paypalWindow.closed) {
-            this.paymentInProgress = true;
-          }
+          // Unknown status
+          this.infoMessage = 'Waiting for payment confirmation...';
         }
       },
       error: (error) => {
-        this.paymentInProgress = false;
         console.error('❌ Payment status check error:', error);
         
-        if (error.status === 404) {
-          this.errorMessage = 'Order not found. It may have been cancelled.';
-          setTimeout(() => {
-            this.router.navigate(['/orders']);
-          }, 2000);
-        } else {
-          this.errorMessage = 'Error checking payment status. Please check your orders.';
+        // If popup is closed and we get an error, assume user cancelled
+        if (this.paypalWindow?.closed && !this.paymentInProgress) {
+          this.paymentInProgress = false;
+          this.errorMessage = 'Payment was not completed. You can try again.';
           this.infoMessage = '';
+          this.cleanupPaymentWindow();
         }
       }
     });
@@ -347,16 +335,11 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
    * Cancel payment and navigate back
    */
   cancelPayment(): void {
-    this.cleanupPaymentWindow();
-    this.paymentInProgress = false;
-    this.infoMessage = '';
-    
-    // If we have an order ID, optionally cancel it on backend
-    if (this.orderId && confirm('Cancel this payment?')) {
-      this.cancelOrderOnBackend();
-    } else {
+    this.cancelOrderOnBackend();
+      this.cleanupPaymentWindow();
+      this.paymentInProgress = false;
       this.router.navigate(['/orders']);
-    }
+    
   }
   
   /**
@@ -364,39 +347,67 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
    */
   private cancelOrderOnBackend(): void {
     this.loading = true;
-    this.infoMessage = 'Cancelling order...';
-    
-    const url = this.userId 
-      ? `http://localhost:8080/api/orders/${this.orderId}/cancel/user/${this.userId}`
-      : `http://localhost:8080/api/orders/${this.orderId}/cancel`;
-    
-    this.http.put(url, {}).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        this.loading = false;
-        this.successMessage = 'Order cancelled successfully.';
-        setTimeout(() => {
-          this.router.navigate(['/orders']);
-        }, 2000);
-      },
-      error: (error) => {
-        this.loading = false;
-        console.error('Order cancellation error:', error);
-        this.errorMessage = 'Failed to cancel order.';
+  this.infoMessage = 'Cancelling order...';
+  
+  // CORRECT: Use GET with query parameters as per your backend endpoint
+  const url = `http://localhost:8080/api/payments/cancel`; // Adjust based on your actual base path
+  
+  // For your specific case, it might be just:
+  // const url = `http://localhost:8080/cancel`;
+  
+  // Add query parameters
+  if (this.orderId) {
+  const params = new HttpParams()
+    .set('orderId', this.orderId.toString())
+    .set('userId', this.userId?.toString() || '');
+  
+  // Use GET method since your backend uses @GetMapping
+  this.http.get(url, { 
+    params,
+    responseType: 'text'  // Since backend returns HTML string
+  }).pipe(
+    takeUntil(this.destroy$)
+  ).subscribe({
+    next: (htmlResponse: string) => {
+      this.loading = false;
+      this.paymentInProgress = false;
+      
+      // Option 1: Display the HTML response
+      
+      // Option 2: Just show success message
+      this.successMessage = 'Order cancelled successfully. Stock has been restored.';
+      
+      this.cleanupPaymentWindow();
+      setTimeout(() => {
         this.router.navigate(['/orders']);
-      }
-    });
+      }, 2000);
+    },
+    error: (error) => {
+      this.loading = false;
+      console.error('Order cancellation error:', error);
+      this.errorMessage = 'Failed to cancel order: ' + (error.error || error.message);
+      this.cleanupPaymentWindow();
+      this.router.navigate(['/orders']);
+    }
+  });
+}
   }
   
   /**
    * Retry payment after error
    */
   retryPayment(): void {
+    // Clear all messages and restart
     this.errorMessage = '';
     this.successMessage = '';
     this.infoMessage = '';
-    this.initiatePaypalPayment();
+    this.popupClosedByUser = false;
+    this.paymentCompleted = false;
+    
+    // Give a small delay before retrying
+    setTimeout(() => {
+      this.initiatePaypalPayment();
+    }, 500);
   }
   
   /**
@@ -413,20 +424,9 @@ export class PaypalPaymentComponent implements OnInit, OnDestroy {
   }
   
   /**
-   * View order details
-   */
-  viewOrder(): void {
-    if (this.orderId) {
-      this.router.navigate(['/orders', this.orderId], 
-        this.userId ? { queryParams: { userId: this.userId } } : {});
-    }
-  }
-  
-  /**
    * Continue shopping
    */
   continueShopping(): void {
     this.router.navigate(['/products']);
   }
-  
 }

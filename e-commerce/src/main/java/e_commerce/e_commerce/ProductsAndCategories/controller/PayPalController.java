@@ -10,6 +10,7 @@ import e_commerce.e_commerce.ProductsAndCategories.serviec.PaypalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -134,7 +135,7 @@ private  final  OrderRepository orderRepository;
             return createErrorHtml(e.getMessage(), orderId, userId);
         }
     }
-
+@Transactional
     @GetMapping("/cancel")
     public String paymentCancel(
             @RequestParam("orderId") Long orderId,
@@ -146,13 +147,11 @@ private  final  OrderRepository orderRepository;
             // Update order status to cancelled
             OrderEntity order = orderService.getOrderById(orderId);
             order.setPaymentStatus("CANCELLED");
-            order.setStatus("CANCELLED");
-
+            System.out.println("llll");
+            System.out.println("qqqq");
             // Restore stock
-            for (var orderItem : order.getOrderItems()) {
-                var product = orderItem.getProduct();
-                product.setStock_quantity(product.getStock_quantity() + orderItem.getQuantity());
-            }
+
+            orderRepository.save(order);
 
             return createCancelHtml(orderId, userId);
 
@@ -214,6 +213,34 @@ private  final  OrderRepository orderRepository;
                     "orderStatus", order.getStatus(),
                     "orderId", orderId
             ));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    @GetMapping("/payment-details/{orderId}")
+    public ResponseEntity<?> getPaymentDetails(@PathVariable Long orderId,
+                                               @RequestParam(required = false) Long userId) {
+        try {
+            OrderEntity order;
+            if (userId != null) {
+                order = orderService.getOrderById(orderId, userId);
+            } else {
+                order = orderService.getOrderById(orderId);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", order.getId());
+            response.put("orderNumber", order.getOrderNumber());
+            response.put("paymentStatus", order.getPaymentStatus());
+            response.put("orderStatus", order.getStatus());
+            response.put("totalAmount", order.getTotalPrice());
+            response.put("paymentMethod", order.getPaymentMethod());
+
+            // Add more details if payment is completed
+
+            return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

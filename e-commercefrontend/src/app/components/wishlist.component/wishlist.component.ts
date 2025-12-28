@@ -115,19 +115,19 @@ export class WishlistComponent implements OnInit, OnDestroy {
     const imgData = image.img;
 
     // 2. Safety Check: If image data is null/undefined
-    if (!imgData) {
-      return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80';
-    }
+    // if (!imgData) {
+    //   return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&q=80';
+    // }
 
     // 3. If it's a web URL (http/https) or local path, return as is
-    if (imgData.startsWith('http') || imgData.startsWith('/')) {
-      return imgData;
-    }
+    // if (imgData.startsWith('http') || imgData.startsWith('/')) {
+    //   return imgData;
+    // }
 
     // 4. If it already has the Base64 prefix, return as is
-    if (imgData.startsWith('data:image')) {
-      return imgData;
-    }
+    // if (imgData.startsWith('data:image')) {
+    //   return imgData;
+    // }
 
     // 5. Default: It's a raw Base64 string from the DB, so add the prefix
     return `data:image/jpeg;base64,${imgData}`;

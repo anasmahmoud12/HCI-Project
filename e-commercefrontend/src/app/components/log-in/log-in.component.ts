@@ -52,8 +52,15 @@ export class LoginComponent {
         
         alert(`Welcome ${response.firstName} ${response.lastName}!`);
         
-        // Navigate to home
+       const role=   localStorage.getItem('userRole')
+     console.log('role = ',role);
+if(role=='ADMIN'){
+  this.router.navigate(['admin'])
+}
+else{
+
         this.router.navigate(['/home']);
+}
         
         // Clear form
         this.email = '';

@@ -11,6 +11,7 @@ import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.CategoryMapper
 import e_commerce.e_commerce.ProductsAndCategories.serviec.Mapper.ProductMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -387,7 +388,7 @@ public ProductDto updateProductWithImages(
     }
 
 //public List<ProductDto> getTopDiscountedProducts(int limit) {
-//    Pageable pageable = PageRequest.of(0, limit);
+//    Pageable pageable = (Pageable) PageRequest.of(0, limit);
 //    List<ProductEntity> productEntities = productRepository.findTopDiscountedProducts(pageable);
 //
 //    List<ProductDto> productDtos = new ArrayList<>();

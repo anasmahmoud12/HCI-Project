@@ -501,3 +501,319 @@
     }
   }
 }
+// Add these styles to your existing SCSS file
+
+// Popup closed specific styles
+.popup-closed-info {
+  margin: 1.5rem 0;
+  
+  .hint {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 6px;
+    
+    i {
+      color: #856404;
+      margin-right: 0.5rem;
+    }
+    
+    strong {
+      color: #856404;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    
+    ul {
+      margin: 0.5rem 0 0 1.5rem;
+      color: #856404;
+      
+      li {
+        margin: 0.25rem 0;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+// Enhanced hint variations
+.hint {
+  &.warning {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+    color: #856404;
+    
+    i {
+      color: #856404;
+    }
+  }
+  
+  &.info {
+    background: #d1ecf1;
+    border-left-color: #17a2b8;
+    color: #0c5460;
+    
+    i {
+      color: #0c5460;
+    }
+  }
+  
+  &.success {
+    background: #d4edda;
+    border-left-color: #28a745;
+    color: #155724;
+    
+    i {
+      color: #155724;
+    }
+  }
+}
+
+// Enhanced error state for popup closure
+.error-state {
+  .popup-closed-suggestions {
+    background: #fff3e6;
+    border: 1px solid #ffcc80;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    
+    h4 {
+      color: #e65100;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      
+      i {
+        font-size: 1.2rem;
+      }
+    }
+    
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      
+      .step {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        
+        .step-number {
+          background: #ff9800;
+          color: white;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.9rem;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+        
+        .step-content {
+          flex: 1;
+          
+          p {
+            margin: 0;
+            color: #5d4037;
+            line-height: 1.4;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Status indicator for payment states
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+  
+  &.pending {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-left: 4px solid #1565c0;
+  }
+  
+  &.completed {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+  }
+  
+  &.failed {
+    background: #ffebee;
+    color: #c62828;
+    border-left: 4px solid #c62828;
+  }
+  
+  &.cancelled {
+    background: #fff3e0;
+    color: #ef6c00;
+    border-left: 4px solid #ef6c00;
+  }
+  
+  i {
+    font-size: 1.2rem;
+  }
+  
+  span {
+    font-weight: 500;
+  }
+}
+
+// Payment summary card
+.payment-summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  
+  .summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    
+    h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    .status-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  }
+  
+  .summary-details {
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .label {
+        opacity: 0.9;
+      }
+      
+      .value {
+        font-weight: 500;
+      }
+      
+      &.total {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        
+        .value {
+          font-size: 1.4rem;
+        }
+      }
+    }
+  }
+}
+
+// Action buttons container
+.action-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  
+  .btn {
+    flex: 1;
+    min-width: 120px;
+    
+    &.btn-retry {
+      background: linear-gradient(135deg, #0070ba 0%, #003087 100%);
+      color: white;
+      border: none;
+      
+      &:hover {
+        background: linear-gradient(135deg, #005ea6 0%, #002b73 100%);
+      }
+    }
+    
+    &.btn-secondary-action {
+      background: transparent;
+      border: 2px solid #6c757d;
+      color: #6c757d;
+      
+      &:hover {
+        background: #6c757d;
+        color: white;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 576px) {
+  .popup-closed-info {
+    .hint {
+      ul {
+        padding-left: 1rem;
+      }
+    }
+  }
+  
+  .error-state {
+    .popup-closed-suggestions {
+      padding: 1rem;
+      
+      .steps {
+        .step {
+          flex-direction: column;
+          gap: 0.5rem;
+          
+          .step-number {
+            align-self: flex-start;
+          }
+        }
+      }
+    }
+  }
+  
+  .action-buttons-container {
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+// Animation for status updates
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-update {
+  animation: fadeInUp 0.3s ease-out;
+}
